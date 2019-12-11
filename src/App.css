@@ -1,22 +1,24 @@
-.App {
-  text-align: center;
+.__json-pretty__ {
+  line-height: 1.3;
+  color: #66d9ef;
+  background: #ffffff;
+  overflow: auto;
 }
-
-.App-logo {
-  height: 40vmin;
+.__json-pretty__ .__json-key__ {
+  color: #550422;
 }
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+.__json-pretty__ .__json-value__ {
+  color: #a6e22e;
 }
-
-.App-link {
-  color: #09d3ac;
+.__json-pretty__ .__json-string__ {
+  color: #c26b07;
+}
+.__json-pretty__ .__json-boolean__ {
+  color: #ac81fe;
+}
+.__json-pretty-error__ {
+  line-height: 1.3;
+  color: #66d9ef;
+  background: #272822;
+  overflow: auto;
 }

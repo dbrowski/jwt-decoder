@@ -1,0 +1,89 @@
+<div style={{maxHeight: "100%"}}>
+
+# Intro
+
+JWT (JSON Web Token; pronounced like the word “jot”) are tokens for sharing claims. Claims are encoded JSON objects that include some information about a subject and are often used in Identity Security applications to transfer information about a user.
+
+For example, after I sign in to a website, information about my account is encoded and passed around to the relevant parties in a JWT. This can enable SSO (Single Sign On); where I needn’t sign in again to another domain owned by the same company. Instead, my information can be passed between domains in the JWT, so the second domain knows who I am and that I’ve already been authenticated by a trusted party.
+
+The main benefits of using a JWT are:
+
+  - Compact representation of information about a subject or user
+
+  - They can be encrypted or digitally signed so the information can be passed around securely
+
+# Components of a JWT
+
+Technically, a JWT is part of a JWS (JSON Web Signature) object or a JWE (JSON Web Encryption) object. The JWT is a part of one of those that includes the claims about a user or subject. However, the entire string is often referred to as a JWT if the payload is an encoded JWT object. [JWT objects are always represented inside of a JWS or JWE](https://tools.ietf.org/html/rfc7519#section-1).
+
+There are three main parts of a JWS or JWE that include a JWT object:
+
+  1.  Header - the type of encoded object in the payload and any extra encoding
+
+  2.  Payload - the JWT claims set
+
+  3.  Signature - an encoding of the header and payload
+
+The main parts are encoded then concatenated with a “.” separating them, so that it looks like
+
+  {header}.{payload}.{signature}
+
+And this is your JWS or JWE object!
+
+Now, I’ll briefly describe each of these components.
+
+### Header
+
+The header includes information about how the JWT claims set, the payload, is encoded. For example, take a look at the following header:
+
+```
+    {
+      “typ”:”JWT”,
+
+      ”alg”:”HS256”
+    }
+```
+
+This tells us that we have a JWT encoded with the HMAC SHA-256 algorithm. The payload with a JWE including this header will be of a JWT signed and encrypted with the HMAC SHA-256 algorithm. The type may be left out if the JWSs and JWEs used by the application are JWT types. It’s intended to avoid confusion when different types are being used.
+
+### Payload
+
+The payload contains the JWT object itself, and the JWT itself is just a set of claims. For example, take a look at the following payload:
+
+```json
+    {
+      “aud”: “https://api.pingone.com”,
+
+      “iss”: “https://auth.pingone.com/abcdefg12345/as”
+
+      “exp: “1300819380”
+    }
+```
+
+This payload has an audience (“aud”) of the PingOne for Customers API, an issuer (“iss”) of the PingOne for Customers Authorization Server, and has a set expiration date (“exp”). These are some common claim names, but they will vary depending on the application and service being used.
+
+### Signature
+
+The signature is the header and payload (JWT claims set) encoded using the algorithm specified in the header. In our example above it would be the encoded header concatenated with the encoded JWT claims set encoded with the HMAC SHA-256 algorithm.
+
+# JWT Decoder Tool
+
+Use the tool by following these steps:
+
+  1.  First, remember that JWTs are tokens that are often used as the credentials for SSO applications. The token is entirely decoded client side in the browser, so make sure to take proper precautions to protect your token!
+
+  2.  Grab a JWT you want to decode, or a JWS or JWE containing a JWT.
+
+      They will have the format of {header}.{payload}.{signature}
+
+      The signature may be blank
+
+  3.  Input the token
+
+  4.  Press the Decode button
+
+  5.  Read the decoded outputs for the header and payload!
+
+An easy way to try out the tool is to [sign up for a free trial of PingOne for Customers](https://developer.pingidentity.com/en/signup.html). [Create a worker app connection](https://www.youtube.com/watch?v=3FPJJ-Ye_go&list=PLtT9h6_TdgvbBK0XtV73i3Qo3EaOsXV8o) and [click the “Get Access Token” button](https://support.pingidentity.com/s/p14c-question?id=0D51W00006q66EySAI) on the configuration page for that app connection. Copy the access token and input it here! \*An easy way to create a test worker app that can’t be abused is to limit the roles of the worker app connection before generating an access token. That way the access token will only grant limited privileges.
+
+</div>
