@@ -3,7 +3,6 @@ import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import TextField from "@material-ui/core/TextField";
-import Link from "@material-ui/core/Link";
 import Paper from "@material-ui/core/Paper";
 import Box from "@material-ui/core/Box";
 import Grid from "@material-ui/core/Grid";
@@ -14,18 +13,14 @@ import { makeStyles } from "@material-ui/core/styles";
 import * as jwtDecoder from "jwt-js-decode";
 import JSONPretty from "react-json-pretty";
 import JSONPrettyMon from "./App.css";
-// import "react-json-pretty/themes/1337.css";
-// import "react-json-pretty/themes/acai.css";
-// import "react-json-pretty/themes/adventure_time.css";
 
 import { importMDX } from "mdx.macro";
 
-const Content = lazy(() => importMDX("./InfoText.mdx"));
+// const Content = lazy(() => importMDX("./InfoText.mdx"));
 
 const useStyles = makeStyles(theme => ({
   root: {
-    minHeight: "100vh",
-    height: "100vh"
+    maxHeight: "100vw"
   },
   image: {
     backgroundImage:
@@ -33,12 +28,13 @@ const useStyles = makeStyles(theme => ({
     backgroundRepeat: "no-repeat",
     backgroundColor: "#576877",
     backgroundSize: "cover",
-    backgroundPosition: "center"
+    backgroundPosition: "center",
+    maxHeight: "20vw"
   },
   paper: {
     margin: theme.spacing(8, 4),
     display: "flex",
-    height: "100vh",
+    height: "100%",
     flexDirection: "column",
     alignItems: "stretch",
     justifyContent: "flex-start",
@@ -69,7 +65,6 @@ const useStyles = makeStyles(theme => ({
   },
   info: {
     height: "100%",
-    minHeight: "100%",
     maxHeight: "100%",
     color: "#2E4355",
     margin: "0",
@@ -121,14 +116,12 @@ export default function App() {
   return (
     <Grid container component="main" className={classes.root}>
       <CssBaseline />
-      <Grid
+      {/* <Grid
         container
         item
         xs={5}
         direction="column"
         style={{
-          minHeight: "100vh",
-          maxHeight: "100vh",
           overflow: "auto"
         }}
       >
@@ -136,34 +129,32 @@ export default function App() {
           item
           spacing={0}
           className={classes.image}
-          style={{ minHeight: "20%", flex: "1 2 auto" }}
+          style={{ maxHeight: "20vw", flex: "0 2 auto" }}
         ></Grid>
         <Grid
           item
           spacing={0}
-          flex="2 1 auto"
           style={{
-            maxHeight: "80%",
             paddingLeft: "15%",
             paddingRight: "15%",
             margin: "0",
-            flex: "1 1 auto"
+            flex: "2 1 auto"
           }}
         >
           <Suspense fallback={<div>Loading...</div>} id="suspense">
             <Content id="content" />
           </Suspense>
         </Grid>
-      </Grid>
+      </Grid> */}
 
       <Grid
         item
         container
-        xs={7}
+        xs={12}
         component={Paper}
         elevation={6}
         square
-        style={{ height: "100vh" }}
+        style={{ height: "100%" }}
       >
         <Grid item container className={classes.paper} direction="column">
           <Grid
@@ -258,6 +249,7 @@ export default function App() {
                     <JSONPretty
                       id="pretty-header"
                       data={decodedJot.header}
+                      theme={JSONPrettyMon}
                       paddingTop="0"
                       marginTop="0"
                       style={{
@@ -267,7 +259,6 @@ export default function App() {
                       }}
                       mainStyle="padding: 0, margin: 0"
                       valueStyle="padding: 0, margin: 0"
-                      theme="JSONPretty1337"
                     />
                   ) : (
                     ""
@@ -291,12 +282,12 @@ export default function App() {
                       data={decodedJot.payload}
                       theme={JSONPrettyMon}
                       style={{
-                        fontSize: "1em",
-                        backgroundColor: "#ffffff"
+                        margin: 0,
+                        padding: 0,
+                        fontSize: "1rem"
                       }}
-                      mainStyle="fontSize:1em"
-                      valueStyle="font-size:1em"
-                      booleanStyle="font-size:1em"
+                      mainStyle="padding: 0, margin: 0"
+                      valueStyle="padding: 0, margin: 0"
                     />
                   ) : (
                     ""

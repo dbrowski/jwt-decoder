@@ -1,6 +1,6 @@
 <div style={{maxHeight: "100%"}}>
 
-# Intro
+<h1># Intro</h1>
 
 JWT (JSON Web Token; pronounced like the word “jot”) are tokens for sharing claims. Claims are encoded JSON objects that include some information about a subject and are often used in Identity Security applications to transfer information about a user.
 
@@ -12,7 +12,7 @@ The main benefits of using a JWT are:
 
   - They can be encrypted or digitally signed so the information can be passed around securely
 
-# Components of a JWT
+<h2># Components of a JWT</h2>
 
 Technically, a JWT is part of a JWS (JSON Web Signature) object or a JWE (JSON Web Encryption) object. The JWT is a part of one of those that includes the claims about a user or subject. However, the entire string is often referred to as a JWT if the payload is an encoded JWT object. [JWT objects are always represented inside of a JWS or JWE](https://tools.ietf.org/html/rfc7519#section-1).
 
@@ -32,7 +32,7 @@ And this is your JWS or JWE object!
 
 Now, I’ll briefly describe each of these components.
 
-### Header
+<h3>### Header</h3>
 
 The header includes information about how the JWT claims set, the payload, is encoded. For example, take a look at the following header:
 
@@ -46,7 +46,7 @@ The header includes information about how the JWT claims set, the payload, is en
 
 This tells us that we have a JWT encoded with the HMAC SHA-256 algorithm. The payload with a JWE including this header will be of a JWT signed and encrypted with the HMAC SHA-256 algorithm. The type may be left out if the JWSs and JWEs used by the application are JWT types. It’s intended to avoid confusion when different types are being used.
 
-### Payload
+<h3>### Payload</h3>
 
 The payload contains the JWT object itself, and the JWT itself is just a set of claims. For example, take a look at the following payload:
 
@@ -62,11 +62,11 @@ The payload contains the JWT object itself, and the JWT itself is just a set of 
 
 This payload has an audience (“aud”) of the PingOne for Customers API, an issuer (“iss”) of the PingOne for Customers Authorization Server, and has a set expiration date (“exp”). These are some common claim names, but they will vary depending on the application and service being used.
 
-### Signature
+<h3>### Signature</h3>
 
 The signature is the header and payload (JWT claims set) encoded using the algorithm specified in the header. In our example above it would be the encoded header concatenated with the encoded JWT claims set encoded with the HMAC SHA-256 algorithm.
 
-# JWT Decoder Tool
+<h2># JWT Decoder Tool</h2>
 
 Use the tool by following these steps:
 
