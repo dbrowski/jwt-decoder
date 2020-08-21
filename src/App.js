@@ -209,6 +209,7 @@ export default function App() {
                   borderRadius={5}
                   borderColor="#576877"
                   height="100%"
+                  maxWidth="100%"
                   minHeight="10vh"
                   marginTop="0rem"
                   marginBottom="1rem"
