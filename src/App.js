@@ -18,9 +18,9 @@ import { importMDX } from "mdx.macro";
 
 // const Content = lazy(() => importMDX("./InfoText.mdx"));
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
-    maxHeight: "100vw"
+    maxHeight: "100vw",
   },
   image: {
     backgroundImage:
@@ -29,7 +29,7 @@ const useStyles = makeStyles(theme => ({
     backgroundColor: "#576877",
     backgroundSize: "cover",
     backgroundPosition: "center",
-    maxHeight: "20vw"
+    maxHeight: "20vw",
   },
   paper: {
     margin: theme.spacing(8, 4),
@@ -38,38 +38,38 @@ const useStyles = makeStyles(theme => ({
     flexDirection: "column",
     alignItems: "stretch",
     justifyContent: "flex-start",
-    color: "#2E4355"
+    color: "#2E4355",
   },
   avatar: {
     margin: theme.spacing(1),
-    backgroundColor: "#2E4355"
+    backgroundColor: "#2E4355",
   },
   form: {
     width: "100%", // Fix IE 11 issue.
-    marginTop: theme.spacing(10)
+    marginTop: theme.spacing(10),
   },
   submit: {
     backgroundColor: "#2E4355",
-    margin: theme.spacing(3, 0, 2)
+    margin: theme.spacing(3, 0, 2),
   },
   typography: {
     color: "#2E4355",
-    fontSize: "1rem"
+    fontSize: "1rem",
   },
   errorMessage: {
-    color: "red"
+    color: "red",
   },
   infoPaperContainer: {
     maxHeight: "100%",
-    overflow: "auto"
+    overflow: "auto",
   },
   info: {
     height: "100%",
     maxHeight: "100%",
     color: "#2E4355",
     margin: "0",
-    padding: "0"
-  }
+    padding: "0",
+  },
 }));
 
 export default function App() {
@@ -85,7 +85,7 @@ export default function App() {
   const open = Boolean(anchorEl);
   const id = open ? "popover" : undefined;
 
-  const handleSubmit = event => {
+  const handleSubmit = (event) => {
     event.preventDefault();
 
     try {
@@ -99,7 +99,7 @@ export default function App() {
     }
   };
 
-  const handleJWTChange = event => {
+  const handleJWTChange = (event) => {
     event.preventDefault();
     setJot(event.target.value);
   };
@@ -116,37 +116,6 @@ export default function App() {
   return (
     <Grid container component="main" className={classes.root}>
       <CssBaseline />
-      {/* <Grid
-        container
-        item
-        xs={5}
-        direction="column"
-        style={{
-          overflow: "auto"
-        }}
-      >
-        <Grid
-          item
-          spacing={0}
-          className={classes.image}
-          style={{ maxHeight: "20vw", flex: "0 2 auto" }}
-        ></Grid>
-        <Grid
-          item
-          spacing={0}
-          style={{
-            paddingLeft: "15%",
-            paddingRight: "15%",
-            margin: "0",
-            flex: "2 1 auto"
-          }}
-        >
-          <Suspense fallback={<div>Loading...</div>} id="suspense">
-            <Content id="content" />
-          </Suspense>
-        </Grid>
-      </Grid> */}
-
       <Grid
         item
         container
@@ -163,7 +132,7 @@ export default function App() {
             xs={12}
             justify="center"
             style={{
-              flex: "0 1 0"
+              flex: "0 1 0",
             }}
           >
             <Avatar className={classes.avatar}>
@@ -210,11 +179,11 @@ export default function App() {
                   onClose={handleClose}
                   anchorOrigin={{
                     vertical: "center",
-                    horizontal: "center"
+                    horizontal: "center",
                   }}
                   transformOrigin={{
                     vertical: "top",
-                    horizontal: "center"
+                    horizontal: "center",
                   }}
                 >
                   <Typography className={classes.errorMessage}>
@@ -255,7 +224,7 @@ export default function App() {
                       style={{
                         margin: 0,
                         padding: 0,
-                        fontSize: "1rem"
+                        fontSize: "1rem",
                       }}
                       mainStyle="padding: 0, margin: 0"
                       valueStyle="padding: 0, margin: 0"
@@ -284,7 +253,7 @@ export default function App() {
                       style={{
                         margin: 0,
                         padding: 0,
-                        fontSize: "1rem"
+                        fontSize: "1rem",
                       }}
                       mainStyle="padding: 0, margin: 0"
                       valueStyle="padding: 0, margin: 0"
