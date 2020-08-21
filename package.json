@@ -1,29 +1,35 @@
 {
   "name": "jwt-decoder-page",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "dependencies": {
-    "serialize-javascript": "^2.1.1":
     "@emotion/core": "^10.0.22",
     "@material-ui/core": "^4.6.1",
     "@material-ui/icons": "^4.5.1",
     "@mdx-js/react": "^1.5.1",
+    "dot-prop": "^4.2.1",
+    "elliptic": "^6.5.3",
     "highlight.js": "^9.16.2",
     "jsome": "^2.5.0",
     "jsonwebtoken": "^8.5.1",
     "jws": "^3.2.2",
     "jwt-js-decode": "^1.4.1",
+    "lodash": "^4.17.19",
     "markdown-it": "^10.0.0",
     "markdown-to-jsx": "^6.10.3",
     "mdx.macro": "^0.2.9",
+    "minimist": "^0.2.1",
+    "prismjs": "^1.21.0",
     "raw-loader": "^4.0.0",
     "react": "^16.11.0",
     "react-dom": "^16.11.0",
     "react-json-pretty": "^2.2.0",
     "react-scripts-mdx": "^3.0.3",
+    "serialize-javascript": "^2.1.1",
     "stringify-object": "^3.3.0",
     "theme-ui": "^0.2.49",
-    "typeface-roboto": "^0.0.75"
+    "typeface-roboto": "^0.0.75",
+    "websocket-extensions": "^0.1.4"
   },
   "scripts": {
     "start": "react-scripts start",
