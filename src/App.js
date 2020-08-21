@@ -20,7 +20,7 @@ import { importMDX } from "mdx.macro";
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    maxHeight: "100vw",
+    maxHeight: "100%",
   },
   image: {
     backgroundImage:
@@ -35,6 +35,7 @@ const useStyles = makeStyles((theme) => ({
     margin: theme.spacing(8, 4),
     display: "flex",
     height: "100%",
+    maxWidth: "80%",
     flexDirection: "column",
     alignItems: "stretch",
     justifyContent: "flex-start",
