@@ -1,4 +1,4 @@
-import React, { useState, lazy, Suspense } from "react";
+import React, { useState } from "react";
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
 import CssBaseline from "@material-ui/core/CssBaseline";
@@ -14,9 +14,6 @@ import * as jwtDecoder from "jwt-js-decode";
 import JSONPretty from "react-json-pretty";
 import JSONPrettyMon from "./App.css";
 
-import { importMDX } from "mdx.macro";
-
-// const Content = lazy(() => importMDX("./InfoText.mdx"));
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -116,36 +113,7 @@ export default function App() {
   return (
     <Grid container component="main" className={classes.root}>
       <CssBaseline />
-      {/* <Grid
-        container
-        item
-        xs={5}
-        direction="column"
-        style={{
-          overflow: "auto"
-        }}
-      >
-        <Grid
-          item
-          spacing={0}
-          className={classes.image}
-          style={{ maxHeight: "20vw", flex: "0 2 auto" }}
-        ></Grid>
-        <Grid
-          item
-          spacing={0}
-          style={{
-            paddingLeft: "15%",
-            paddingRight: "15%",
-            margin: "0",
-            flex: "2 1 auto"
-          }}
-        >
-          <Suspense fallback={<div>Loading...</div>} id="suspense">
-            <Content id="content" />
-          </Suspense>
-        </Grid>
-      </Grid> */}
+
 
       <Grid
         item
