@@ -15,6 +15,8 @@ import JSONPretty from "react-json-pretty";
 import JSONPrettyMon from "./App.css";
 import base64url from "base64url";
 const crypto = require("crypto");
+const rs = require("jsrsasign");
+const rsu = require("jsrsasign-util");
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -76,6 +78,9 @@ export default function App() {
 
   const exampleJWT =
     "eyJraWQiOiJkZWZhdWx0IiwiYWxnIjoiUlMyNTYifQ.eyJhdWQiOiJodHRwczpcL1wvYXBpLnBpbmdvbmUuY29tIiwib3JnIjoiYTZmZGNkZTgtMGFlMi00YjNjLTgxZGMtYjM0NjhmY2U2N2Y5IiwiaXNzIjoiaHR0cHM6XC9cL2F1dGgucGluZ29uZS5jb21cLzc4ZTE4YmIxLTA5NDMtNGNhYy04ODAzLWE5Y2U2ZjRiMjczMVwvYXMiLCJleHAiOjE2MDAwMjI3MTMsImVudiI6Ijc4ZTE4YmIxLTA5NDMtNGNhYy04ODAzLWE5Y2U2ZjRiMjczMSIsImlhdCI6MTYwMDAxOTExMywiY2xpZW50X2lkIjoiOTc0MTYyYjAtODgyMC00ZWE1LTljZGEtY2JhM2M1ODlmNmFmIn0.Rh5h_oNpgEoR01rYU7ScbNdJ6kNeocNhV9cmw9pXw80vjN3KBDOauXmZfZugmRviHKrdIpXae-N2hN5xiS8BeocTu2khhyl69dLFu9sX1RON0JwmjStcKEIRSBJTU1ddEhVoedSvlXx5QDJ-nH_lz9DjV1qzrGMI1-M7JTtTmPN68klGNG-_DaTzJMZbBFxWN6dhgfmBBadcCUbpnPlTpSUCJtpXfJm-uUdMcDSG0ZZ3trhqtS9Eq2WyRM88zEYDtPMPfCVMQ6eXotDE8xGfPIWI_nCd9-ALBUFATKh_RVl1m1-5MmwqceoRmH2C_CXomsLPFwsF_rGJt39FzWC4DQ";
+
+  const examplePubKey =
+    "MIIDLDCCAhSgAwIBAgIGAWW17v5GMA0GCSqGSIb3DQEBCwUAMFcxCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJDTzEPMA0GA1UEBxMGRGVudmVyMRUwEwYDVQQKEwxQaW5nSWRlbnRpdHkxEzARBgNVBAMTCnByb2Qtb2F1dGgwHhcNMTgwOTA3MjEyNzQzWhcNMjMwOTA2MjEyNzQzWjBXMQswCQYDVQQGEwJVUzELMAkGA1UECBMCQ08xDzANBgNVBAcTBkRlbnZlcjEVMBMGA1UEChMMUGluZ0lkZW50aXR5MRMwEQYDVQQDEwpwcm9kLW9hdXRoMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAjgQ8twHSmSlT28I7iTi4+IsA3jgfhGPx0pIC27LTDf0q4wBE8Ap5dG7kqL9GE7zoxleghUs6APQ0qKWaTxBSqxISzZmZpRQqipM+Tog3wgLciIbRozRHTXmCmzFJcG5spoe2XtcZ3zMRs9kkOUzxN2XMXHBidQKFB82/NjDwqhW/gdbS1vJLt1j9gjl60wvXcTwFzTkqh6owGjMCVFrraEv+H6XdhP4VMM7gsPOSD+IJke0CmQyVMVXVWoydahMLqLuz59HBUCYFcW0HVJLDMKJvNoFhY9xZW3oiVrNPP7COdv5+4SLq3EIi5WVd9TglYDQt2SmyDV36pcBPautKvQIDAQABMA0GCSqGSIb3DQEBCwUAA4IBAQB42oNEjRUNRbMEnrQ6UyyyVu+DW6lL19RJoCasb4hRWe/YHr11xF3+JMObsaaRBA0/jJ7SAFiJxNpBC48ceXDK+mS3VbGDBj+Isi19Csa1HO0VpERKuNuaXmUGmJm4hkMcYFbnjC9+g/3bzDDiZWAiZUrqVA6HEj4MXb5/m7492msSFnhZ06qjAVj/qpRcVBIAIy1XCvTB2X913x4r+CjrWd0x3nHcjr2qfnmw96qPQU82MagWXenNNZbLpy+rDbWjYDB/bW3Rgp4704PLixar5gGR69x3JCvfr7N45oOYTQcZmTasF7W5Ee2bsR2NXu1KvI7fLgLifz25V/eqYtjY";
 
   // State variables and setters.
   const [jot, setJot] = useState("");
@@ -148,39 +153,65 @@ export default function App() {
   };
 
   const decryptJWS = (event) => {
-    const dj = jwtDecoder.jwtDecode(jot);
-    const header1 = dj.header;
+    // const dj = jwtDecoder.jwtDecode(jot);
+    // const header1 = dj.header;
     // let payload = dj.payload;
     // let signature = dj.signature;
     const header = jot.split(".")[0];
     const payload = jot.split(".")[1];
     const signature = jot.split(".")[2];
 
-    const verifyFunction = crypto.createVerify("RSA-SHA256");
+    // const verifyFunction = crypto.createVerify("SHA256");
+    const JWS = rs.jws.JWS;
 
     let decodedSignature = base64url.decode(signature);
+    const decodedHeader = base64url.decode(header);
+
+    console.log(decodedSignature);
 
     if (key) {
-      console.log(header1.alg);
+      // console.log(decodedHeader.alg);
+      console.log("key");
       console.log(key);
 
-      if (header1.alg === "RS256") {
-        setRS256(true);
+      if (rs256) {
+        const acceptField = { alg: ["RS256"], verifyAt: "1600022710" };
+        const isValid = rs.jws.JWS.verifyJWT(jot, key, acceptField);
+        const isValid2 = rs.jws.JWS.verify(jot, key, ["RS256"]);
+
+
+        console.log("isValid");
+        console.log(isValid);
+
+        console.log("isValid2");
+        console.log(isValid2);
+
+        console.log("header");
         console.log(header);
+        console.log("payload");
         console.log(payload);
+        console.log("signature");
         console.log(signature);
+
         let headerBase64Encoded = base64url.toBase64(header);
         let payloadBase64Encoded = base64url.toBase64(payload);
-        verifyFunction.update(header + "." + payload);
 
-        const signatureBase64 = base64url.toBase64(signature);
-        const signatureIsValid = verifyFunction.verify(
-          key,
-          signatureBase64,
-          "base64"
-        );
+        const headerAndPayload = header + "." + payload;
+        console.log("headerAndPayload");
+        console.log(headerAndPayload);
 
-        console.log(signatureIsValid);
+        // verifyFunction.update(headerAndPayload, "base64");
+        // verifyFunction.end();
+
+        // const signatureBase64 = base64url.toBase64(signature);
+
+        // const signatureIsValid = verifyFunction.verify(
+        //   key,
+        //   signature,
+        //   "base64"
+        // );
+
+        // console.log(signatureIsValid);
 
         // jwtDecoder.jwtVerify(jot, key).then((res) => {
         //   if (res === true) {
@@ -192,8 +223,7 @@ export default function App() {
         // });
       }
 
-      if (header.alg == "HS256") {
-        setHS256(true);
+      if (hs256) {
       }
     } else {
       let msg = "Need a key to try to verify the JWT.";
