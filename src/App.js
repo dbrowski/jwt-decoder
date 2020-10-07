@@ -14,10 +14,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import * as jwtDecoder from "jwt-js-decode";
 import JSONPretty from "react-json-pretty";
 import JSONPrettyMon from "./App.css";
-import base64url from "base64url";
-const crypto = require("crypto");
-const rs = require("jsrsasign");
-const rsu = require("jsrsasign-util");
+import * as rs from "jsrsasign";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -120,8 +117,8 @@ export default function App() {
   const decode = () => {
     let dj = jwtDecoder.jwtDecode(jot);
     let header = dj.header;
-    let payload = dj.payload;
-    let signature = dj.signature;
+    // let payload = dj.payload;
+    // let signature = dj.signature;
 
     setDecodedJot(dj);
 
@@ -129,7 +126,7 @@ export default function App() {
       setRS256(true);
     }
 
-    if (header.alg == "HS256") {
+    if (header.alg === "HS256") {
       setHS256(true);
     }
   };
@@ -154,10 +151,6 @@ export default function App() {
   };
 
   const decryptJWS = (event) => {
-    const header = jot.split(".")[0];
-    const payload = jot.split(".")[1];
-    const signature = jot.split(".")[2];
-
     if (key) {
       const JWS = rs.jws.JWS;
       if (rs256) {
@@ -190,8 +183,6 @@ export default function App() {
       console.log("Need key.");
     }
   };
-
-  const decryptJWE = () => {};
 
   return (
     <Grid container component="main" className={classes.root}>
