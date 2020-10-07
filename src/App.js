@@ -8,6 +8,7 @@ import Box from "@material-ui/core/Box";
 import Grid from "@material-ui/core/Grid";
 import Popover from "@material-ui/core/Popover";
 import Typography from "@material-ui/core/Typography";
+import CheckIcon from "@material-ui/icons/Check";
 import LockOpenIcon from "@material-ui/icons/LockOpen";
 import { makeStyles } from "@material-ui/core/styles";
 import * as jwtDecoder from "jwt-js-decode";
@@ -76,12 +77,6 @@ export default function App() {
   // Use the above styles.
   const classes = useStyles();
 
-  const exampleJWT =
-    "eyJraWQiOiJkZWZhdWx0IiwiYWxnIjoiUlMyNTYifQ.eyJhdWQiOiJodHRwczpcL1wvYXBpLnBpbmdvbmUuY29tIiwib3JnIjoiYTZmZGNkZTgtMGFlMi00YjNjLTgxZGMtYjM0NjhmY2U2N2Y5IiwiaXNzIjoiaHR0cHM6XC9cL2F1dGgucGluZ29uZS5jb21cLzMzM2Q2NmI1LWQyZjAtNDhkMC04ZWMwLWNmNGNhZmQzNWQyNVwvYXMiLCJleHAiOjE2MDE1NzE2NzgsImVudiI6IjMzM2Q2NmI1LWQyZjAtNDhkMC04ZWMwLWNmNGNhZmQzNWQyNSIsImlhdCI6MTYwMTU2ODA3OCwiY2xpZW50X2lkIjoiMmI0Y2M3OWEtNzc2Mi00OGUxLWE5NjYtNmI4YzBhN2U0ZDEyIn0.H54cYnelqCCiYbCIaQbAI9aydrKCSPktqFNAED_ZDCp25iZeBS6PSMb-XalH9pIoa4qX-OUOGPpax-0VNbXvvbkv8bnjNBrJOr7J4tAx0bpT62D3vyTvyhps77-BgjY-4dNN9-yMQiz5mNG0Y5EQegViCZiYeUbymsbziaXcIcNPWrTth4slFUkw--Ths3B9KyjIjU5p78yM02jdJou5C7O5c7517aMaI7FonzRyUc3Bw7ipoWQiRT3-gBr-Ho8Aboslx9uTMTn-j-eCMDDxYeUV-lnes4QhLfKwNGxLwAm0AuQ3R19pQynV4V_XVxbfLzqGrwRA85R-tOtdX5iZMA";
-
-  const examplePubKey =
-    "MIIDLDCCAhSgAwIBAgIGAWW17v5GMA0GCSqGSIb3DQEBCwUAMFcxCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJDTzEPMA0GA1UEBxMGRGVudmVyMRUwEwYDVQQKEwxQaW5nSWRlbnRpdHkxEzARBgNVBAMTCnByb2Qtb2F1dGgwHhcNMTgwOTA3MjEyNzQzWhcNMjMwOTA2MjEyNzQzWjBXMQswCQYDVQQGEwJVUzELMAkGA1UECBMCQ08xDzANBgNVBAcTBkRlbnZlcjEVMBMGA1UEChMMUGluZ0lkZW50aXR5MRMwEQYDVQQDEwpwcm9kLW9hdXRoMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAjgQ8twHSmSlT28I7iTi4+IsA3jgfhGPx0pIC27LTDf0q4wBE8Ap5dG7kqL9GE7zoxleghUs6APQ0qKWaTxBSqxISzZmZpRQqipM+Tog3wgLciIbRozRHTXmCmzFJcG5spoe2XtcZ3zMRs9kkOUzxN2XMXHBidQKFB82/NjDwqhW/gdbS1vJLt1j9gjl60wvXcTwFzTkqh6owGjMCVFrraEv+H6XdhP4VMM7gsPOSD+IJke0CmQyVMVXVWoydahMLqLuz59HBUCYFcW0HVJLDMKJvNoFhY9xZW3oiVrNPP7COdv5+4SLq3EIi5WVd9TglYDQt2SmyDV36pcBPautKvQIDAQABMA0GCSqGSIb3DQEBCwUAA4IBAQB42oNEjRUNRbMEnrQ6UyyyVu+DW6lL19RJoCasb4hRWe/YHr11xF3+JMObsaaRBA0/jJ7SAFiJxNpBC48ceXDK+mS3VbGDBj+Isi19Csa1HO0VpERKuNuaXmUGmJm4hkMcYFbnjC9+g/3bzDDiZWAiZUrqVA6HEj4MXb5/m7492msSFnhZ06qjAVj/qpRcVBIAIy1XCvTB2X913x4r+CjrWd0x3nHcjr2qfnmw96qPQU82MagWXenNNZbLpy+rDbWjYDB/bW3Rgp4704PLixar5gGR69x3JCvfr7N45oOYTQcZmTasF7W5Ee2bsR2NXu1KvI7fLgLifz25V/eqYtjY";
-
   // State variables and setters.
   const [jot, setJot] = useState("");
   const [decodedJot, setDecodedJot] = useState("");
@@ -90,6 +85,7 @@ export default function App() {
   const [rs256, setRS256] = useState(false);
   const [hs256, setHS256] = useState(false);
   const [key, setKey] = useState("");
+  const [verifiedSignature, setVerifiedSignature] = useState(false);
 
   const open = Boolean(anchorEl);
   const id = open ? "popover" : undefined;
@@ -98,7 +94,6 @@ export default function App() {
     event.preventDefault();
 
     try {
-      setJot(exampleJWT);
       decode();
     } catch (e) {
       // Gets the reason for failure.
@@ -144,6 +139,7 @@ export default function App() {
     try {
       decryptJWS(event);
     } catch (e) {
+      setVerifiedSignature(false);
       // Gets the reason for failure.
       let msg = "";
       if (e.message) {
@@ -158,85 +154,39 @@ export default function App() {
   };
 
   const decryptJWS = (event) => {
-    // const dj = jwtDecoder.jwtDecode(jot);
-    // const header1 = dj.header;
-    // let payload = dj.payload;
-    // let signature = dj.signature;
     const header = jot.split(".")[0];
     const payload = jot.split(".")[1];
     const signature = jot.split(".")[2];
 
-    // const verifyFunction = crypto.createVerify("SHA256");
-    const JWS = rs.jws.JWS;
-
-    let decodedSignature = base64url.decode(signature);
-    const decodedHeader = base64url.decode(header);
-
-    console.log("decodedSignature");
-    console.log(decodedSignature);
-
     if (key) {
-      // console.log(decodedHeader.alg);
-      console.log("key");
-      console.log(key);
-
+      const JWS = rs.jws.JWS;
       if (rs256) {
-        const acceptField = { alg: ["RS256"], verifyAt: "1601571677" };
-        const pemString =
-          "-----BEGIN CERTIFICATE-----\n" +
-          examplePubKey +
-          "\n-----END CERTIFICATE-----";
-        console.log("pemString");
-        console.log(pemString);
+        const BEGIN_CERTIFICATE = "-----BEGIN CERTIFICATE-----";
+        const END_CERTIFICATE = "-----END CERTIFICATE-----";
+        let pemString = key;
+
+        if (!pemString.startsWith(BEGIN_CERTIFICATE)) {
+          pemString = BEGIN_CERTIFICATE + "\n" + pemString;
+        }
+
+        if (!pemString.endsWith(END_CERTIFICATE)) {
+          pemString = pemString + "\n" + END_CERTIFICATE;
+        }
+
         const rsaKey = rs.KEYUTIL.getKey(pemString);
-        console.log("rsaKey");
-        console.log(rsaKey);
-
-        const isValid = JWS.verifyJWT(jot, rsaKey, acceptField);
-        const isValid2 = JWS.verify(jot, rsaKey, ["RS256"]);
-
-        console.log("isValid");
-        console.log(isValid);
-
-        console.log("isValid2");
-        console.log(isValid2);
-
-        let headerBase64Encoded = base64url.toBase64(header);
-        let payloadBase64Encoded = base64url.toBase64(payload);
-
-        const headerAndPayload = header + "." + payload;
-        console.log("headerAndPayload");
-        console.log(headerAndPayload);
-
-        // verifyFunction.update(headerAndPayload, "base64");
-        // verifyFunction.end();
-
-        // const signatureBase64 = base64url.toBase64(signature);
-
-        // const signatureIsValid = verifyFunction.verify(
-        //   key,
-        //   signature,
-        //   "base64"
-        // );
-
-        // console.log(signatureIsValid);
-
-        // jwtDecoder.jwtVerify(jot, key).then((res) => {
-        //   if (res === true) {
-        //     const jwt = jwtDecoder.jwtDecode("token");
-        //     console.log(jwt.payload);
-        //   } else {
-        //     console.log("could not validate");
-        //   }
-        // });
+        const isValid = JWS.verify(jot, rsaKey, ["RS256"]);
+        setVerifiedSignature(isValid);
       }
 
       if (hs256) {
+        const isValid = JWS.verify(jot, key, ["HS256"]);
+        setVerifiedSignature(isValid);
       }
     } else {
       let msg = "Need a key to try to verify the JWT.";
       setJotError(msg);
       setAnchorEl(event.currentTarget);
+      setVerifiedSignature(false);
       console.log("Need key.");
     }
   };
@@ -415,13 +365,14 @@ export default function App() {
                   )}
                 </Box>
               </Grid>
-              {decodedJot ? (
+              {decodedJot && rs256 ? (
                 <>
                   <Grid item xs={12} style={{ flex: "10 0 auto" }}>
                     <Typography>Public Key</Typography>
                     <TextField
                       variant="outlined"
                       margin="none"
+                      color={verifiedSignature ? "primary" : "secondary"}
                       required
                       fullWidth
                       id="key"
@@ -434,22 +385,37 @@ export default function App() {
                       onChange={handleKeyChange}
                     />
                   </Grid>
+
+                  <Grid item xs={12} style={{ flex: "1 0 auto" }}>
+                    <Button
+                      type="button"
+                      onClick={handleValidateJWT}
+                      fullWidth
+                      variant="contained"
+                      color="primary"
+                      className={classes.submit}
+                    >
+                      Verify Signature
+                    </Button>
+                  </Grid>
+                  <Grid item xs={12} style={{ flex: "1 0 auto" }}>
+                    <Box minHeight="100px">
+                      {verifiedSignature ? (
+                        <Typography color="primary">
+                          Signature Verified{" "}
+                          <CheckIcon style={{ paddingTop: ".25rem" }} />
+                        </Typography>
+                      ) : (
+                        <Typography color="secondary">
+                          Signature not verified
+                        </Typography>
+                      )}
+                    </Box>
+                  </Grid>
                 </>
               ) : (
                 <></>
               )}
-              <Grid item xs={12} style={{ flex: "1 0 auto" }}>
-                <Button
-                  type="button"
-                  onClick={handleValidateJWT}
-                  fullWidth
-                  variant="contained"
-                  color="primary"
-                  className={classes.submit}
-                >
-                  Verify Signature
-                </Button>
-              </Grid>
             </Grid>
           </form>
         </Grid>
