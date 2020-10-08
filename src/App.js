@@ -8,15 +8,13 @@ import Box from "@material-ui/core/Box";
 import Grid from "@material-ui/core/Grid";
 import Popover from "@material-ui/core/Popover";
 import Typography from "@material-ui/core/Typography";
+import CheckIcon from "@material-ui/icons/Check";
 import LockOpenIcon from "@material-ui/icons/LockOpen";
 import { makeStyles } from "@material-ui/core/styles";
 import * as jwtDecoder from "jwt-js-decode";
 import JSONPretty from "react-json-pretty";
 import JSONPrettyMon from "./App.css";
-import base64url from "base64url";
-const crypto = require("crypto");
-const rs = require("jsrsasign");
-const rsu = require("jsrsasign-util");
+import * as rs from "jsrsasign";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -90,6 +88,7 @@ export default function App() {
   const [rs256, setRS256] = useState(false);
   const [hs256, setHS256] = useState(false);
   const [key, setKey] = useState("");
+  const [verifiedSignature, setVerifiedSignature] = useState(false);
 
   const open = Boolean(anchorEl);
   const id = open ? "popover" : undefined;
@@ -125,8 +124,8 @@ export default function App() {
   const decode = () => {
     let dj = jwtDecoder.jwtDecode(jot);
     let header = dj.header;
-    let payload = dj.payload;
-    let signature = dj.signature;
+    // let payload = dj.payload;
+    // let signature = dj.signature;
 
     setDecodedJot(dj);
 
@@ -134,8 +133,61 @@ export default function App() {
       setRS256(true);
     }
 
-    if (header.alg == "HS256") {
+    if (header.alg === "HS256") {
       setHS256(true);
+    }
+  };
+
+  const handleValidateJWT = (event) => {
+    event.preventDefault();
+    try {
+      decryptJWS(event);
+    } catch (e) {
+      setVerifiedSignature(false);
+      // Gets the reason for failure.
+      let msg = "";
+      if (e.message) {
+        msg = e.message.split(". ")[1] || e.message.split(". ")[0];
+        console.error(msg);
+      } else {
+        msg = e;
+      }
+      setJotError(msg);
+      setAnchorEl(event.currentTarget);
+    }
+  };
+
+  const decryptJWS = (event) => {
+    if (key) {
+      const JWS = rs.jws.JWS;
+      if (rs256) {
+        const BEGIN_CERTIFICATE = "-----BEGIN CERTIFICATE-----";
+        const END_CERTIFICATE = "-----END CERTIFICATE-----";
+        let pemString = key;
+
+        if (!pemString.startsWith(BEGIN_CERTIFICATE)) {
+          pemString = BEGIN_CERTIFICATE + "\n" + pemString;
+        }
+
+        if (!pemString.endsWith(END_CERTIFICATE)) {
+          pemString = pemString + "\n" + END_CERTIFICATE;
+        }
+
+        const rsaKey = rs.KEYUTIL.getKey(pemString);
+        const isValid = JWS.verify(jot, rsaKey, ["RS256"]);
+        setVerifiedSignature(isValid);
+      }
+
+      if (hs256) {
+        const isValid = JWS.verify(jot, key, ["HS256"]);
+        setVerifiedSignature(isValid);
+      }
+    } else {
+      let msg = "Need a key to try to verify the JWT.";
+      setJotError(msg);
+      setAnchorEl(event.currentTarget);
+      setVerifiedSignature(false);
+      console.log("Need key.");
     }
   };
 
@@ -407,13 +459,14 @@ export default function App() {
                   )}
                 </Box>
               </Grid>
-              {decodedJot ? (
+              {decodedJot && rs256 ? (
                 <>
                   <Grid item xs={12} style={{ flex: "10 0 auto" }}>
                     <Typography>Public Key</Typography>
                     <TextField
                       variant="outlined"
                       margin="none"
+                      color={verifiedSignature ? "primary" : "secondary"}
                       required
                       fullWidth
                       id="key"
@@ -426,22 +479,37 @@ export default function App() {
                       onChange={handleKeyChange}
                     />
                   </Grid>
+
+                  <Grid item xs={12} style={{ flex: "1 0 auto" }}>
+                    <Button
+                      type="button"
+                      onClick={handleValidateJWT}
+                      fullWidth
+                      variant="contained"
+                      color="primary"
+                      className={classes.submit}
+                    >
+                      Verify Signature
+                    </Button>
+                  </Grid>
+                  <Grid item xs={12} style={{ flex: "1 0 auto" }}>
+                    <Box minHeight="100px">
+                      {verifiedSignature ? (
+                        <Typography color="primary">
+                          Signature Verified{" "}
+                          <CheckIcon style={{ paddingTop: ".25rem" }} />
+                        </Typography>
+                      ) : (
+                        <Typography color="secondary">
+                          Signature not verified
+                        </Typography>
+                      )}
+                    </Box>
+                  </Grid>
                 </>
               ) : (
                 <></>
               )}
-              <Grid item xs={12} style={{ flex: "1 0 auto" }}>
-                <Button
-                  type="button"
-                  onClick={handleValidateJWT}
-                  fullWidth
-                  variant="contained"
-                  color="primary"
-                  className={classes.submit}
-                >
-                  Validate
-                </Button>
-              </Grid>
             </Grid>
           </form>
         </Grid>
