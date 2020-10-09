@@ -285,11 +285,9 @@ export default function App() {
                   border={1}
                   borderRadius={5}
                   borderColor="#576877"
-                  height="100%"
-                  minHeight="10vh"
                   marginTop="0rem"
                   marginBottom="1rem"
-                  padding="0"
+                  padding="1rem"
                 >
                   {decodedJot ? (
                     <JSONPretty
@@ -315,10 +313,9 @@ export default function App() {
                   border={1}
                   borderRadius={5}
                   borderColor="#576877"
-                  height="100%"
-                  minHeight="20vh"
                   marginTop="0rem"
                   marginBottom="1rem"
+                  padding="1rem"
                 >
                   {decodedJot ? (
                     <JSONPretty
@@ -345,9 +342,9 @@ export default function App() {
                   borderRadius={5}
                   borderColor="#576877"
                   height="100%"
-                  minHeight="10vh"
                   marginTop="0rem"
                   marginBottom="1rem"
+                  padding="1rem"
                 >
                   {decodedJot ? (
                     <Typography>{decodedJot.signature}</Typography>
