@@ -15,6 +15,7 @@ import * as jwtDecoder from "jwt-js-decode";
 import JSONPretty from "react-json-pretty";
 import JSONPrettyMon from "./App.css";
 import * as rs from "jsrsasign";
+import CircularIntegration from "./LoadingButton";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -82,6 +83,7 @@ export default function App() {
   const [rs256, setRS256] = useState(false);
   const [hs256, setHS256] = useState(false);
   const [key, setKey] = useState("");
+  const [passphrase, setPassphrase] = useState("");
   const [verifiedSignature, setVerifiedSignature] = useState(false);
 
   const open = Boolean(anchorEl);
@@ -105,9 +107,15 @@ export default function App() {
     event.preventDefault();
     setJot(event.target.value);
   };
+
   const handleKeyChange = (event) => {
     event.preventDefault();
     setKey(event.target.value);
+  };
+
+  const handlePassphraseChange = (event) => {
+    event.preventDefault();
+    setPassphrase(event.target.value);
   };
 
   const handleClose = () => {
@@ -131,12 +139,13 @@ export default function App() {
     }
   };
 
-  const handleValidateJWT = (event) => {
+  const handleValidateJWT = async (event) => {
     event.preventDefault();
+    setVerifiedSignature(false);
+
     try {
       decryptJWS(event);
     } catch (e) {
-      setVerifiedSignature(false);
       // Gets the reason for failure.
       let msg = "";
       if (e.message) {
@@ -151,36 +160,57 @@ export default function App() {
   };
 
   const decryptJWS = (event) => {
-    if (key) {
-      const JWS = rs.jws.JWS;
-      if (rs256) {
+    const JWS = rs.jws.JWS;
+
+    console.log("decryptJWS");
+
+    if (rs256) {
+      if (key) {
         const BEGIN_CERTIFICATE = "-----BEGIN CERTIFICATE-----";
         const END_CERTIFICATE = "-----END CERTIFICATE-----";
         let pemString = key;
 
-        if (!pemString.startsWith(BEGIN_CERTIFICATE)) {
-          pemString = BEGIN_CERTIFICATE + "\n" + pemString;
-        }
+        // if (!pemString.startsWith(BEGIN_CERTIFICATE)) {
+        //   pemString = BEGIN_CERTIFICATE + "\n" + pemString;
+        // }
 
-        if (!pemString.endsWith(END_CERTIFICATE)) {
-          pemString = pemString + "\n" + END_CERTIFICATE;
-        }
+        // if (!pemString.endsWith(END_CERTIFICATE)) {
+        //   pemString = pemString + "\n" + END_CERTIFICATE;
+        // }
 
         const rsaKey = rs.KEYUTIL.getKey(pemString);
         const isValid = JWS.verify(jot, rsaKey, ["RS256"]);
         setVerifiedSignature(isValid);
+      } else {
+        let msg = "Need a RSA certificate to verify the JWT signature.";
+        setJotError(msg);
+        setAnchorEl(event.currentTarget);
+        setVerifiedSignature(false);
+        console.log("Need RSA certificate.");
       }
+    } else if (hs256) {
+      if (passphrase) {
+        // const isValid = JWS.verify(jot, key, ["HS256"]);
+        console.log("passphrase");
+        console.log(passphrase);
 
-      if (hs256) {
-        const isValid = JWS.verify(jot, key, ["HS256"]);
+        const isValid = JWS.verify(jot, { utf8: passphrase }, ["HS256"]);
         setVerifiedSignature(isValid);
+        console.log("isValid");
+        console.log(isValid);
+      } else {
+        let msg = "Need a passphrase to verify the JWT signature.";
+        setJotError(msg);
+        setAnchorEl(event.currentTarget);
+        setVerifiedSignature(false);
+        console.log("Need passphrase.");
       }
     } else {
-      let msg = "Need a key to try to verify the JWT.";
+      let msg = "Didn't recognize the algorithm. Use RS256 or HS256.";
       setJotError(msg);
       setAnchorEl(event.currentTarget);
       setVerifiedSignature(false);
-      console.log("Need key.");
+      console.log("Didn't recognize the algorithm. Use RS256 or HS256");
     }
   };
 
@@ -385,6 +415,60 @@ export default function App() {
                     >
                       Verify Signature
                     </Button>
+                  </Grid>
+                  <Grid item xs={12} style={{ flex: "1 0 auto" }}>
+                    <Box minHeight="100px">
+                      {verifiedSignature ? (
+                        <Typography color="primary">
+                          Signature Verified{" "}
+                          <CheckIcon style={{ paddingTop: ".25rem" }} />
+                        </Typography>
+                      ) : (
+                        <Typography color="secondary">
+                          Signature not verified
+                        </Typography>
+                      )}
+                    </Box>
+                  </Grid>
+                </>
+              ) : (
+                <></>
+              )}
+
+              {decodedJot && hs256 ? (
+                <>
+                  <Grid item xs={12} style={{ flex: "10 0 auto" }}>
+                    <Typography>Passphrase</Typography>
+                    <TextField
+                      variant="outlined"
+                      margin="none"
+                      color={verifiedSignature ? "primary" : "secondary"}
+                      required
+                      fullWidth
+                      id="passphrase"
+                      label="Passphrase"
+                      name="passphrase"
+                      value={passphrase}
+                      autoFocus
+                      rowsMax={4}
+                      multiline
+                      onChange={handlePassphraseChange}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} style={{ flex: "1 0 auto" }}>
+                    {/* <Button
+                      type="button"
+                      onClick={handleValidateJWT}
+                      fullWidth
+                      variant="contained"
+                      color="primary"
+                      className={classes.submit}
+                    >
+                      Verify Signature
+                    </Button> */}
+
+                    <CircularIntegration verifySignature={handleValidateJWT} />
                   </Grid>
                   <Grid item xs={12} style={{ flex: "1 0 auto" }}>
                     <Box minHeight="100px">
