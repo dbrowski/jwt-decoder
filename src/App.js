@@ -216,8 +216,6 @@ export default function App() {
 
   return (
     <Grid container component="main" className={classes.root}>
-      <CssBaseline />
-
       <Grid
         item
         container
