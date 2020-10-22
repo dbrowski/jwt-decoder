@@ -33,6 +33,7 @@ const useStyles = makeStyles((theme) => ({
     margin: theme.spacing(0, 2),
     display: "flex",
     height: "100%",
+    maxWidth: "100%",
     flexDirection: "column",
     alignItems: "stretch",
     justifyContent: "flex-start",
@@ -223,6 +224,7 @@ export default function App() {
         elevation={6}
         square
         justify="flex-start"
+        style={{ maxWidth: "100%" }}
       >
         <Grid
           item
@@ -364,21 +366,20 @@ export default function App() {
               </Grid>
               <Grid item xs={12} style={{ flex: "10 0 auto" }}>
                 <Typography>Signature</Typography>
-                <Box
-                  border={1}
-                  borderRadius={5}
-                  borderColor="#576877"
-                  height="100%"
-                  marginTop="0rem"
-                  marginBottom="1rem"
-                  padding="1rem"
-                >
-                  {decodedJot ? (
-                    <Typography>{decodedJot.signature}</Typography>
-                  ) : (
-                    <Typography></Typography>
-                  )}
-                </Box>
+                <TextField
+                  variant="outlined"
+                  margin="none"
+                  required
+                  fullWidth
+                  id="signature"
+                  label="Signature"
+                  name="Signature"
+                  value={decodedJot ? decodedJot.signature : ""}
+                  autoFocus
+                  rowsMax={1}
+                  multiline
+                  onChange={handleJWTChange}
+                />
               </Grid>
               {decodedJot && rs256 ? (
                 <>
