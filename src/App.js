@@ -30,10 +30,11 @@ const useStyles = makeStyles((theme) => ({
     maxHeight: "20vw",
   },
   paper: {
-    margin: theme.spacing(0, 2),
     display: "flex",
     height: "100%",
     maxWidth: "100%",
+    paddingLeft: ".5rem",
+    paddingRight: ".5rem",
     flexDirection: "column",
     alignItems: "stretch",
     justifyContent: "flex-start",
@@ -143,8 +144,10 @@ export default function App() {
     event.preventDefault();
     setVerifiedSignature(false);
 
+    let verified = false;
+
     try {
-      decryptJWS(event);
+      verified = decryptJWS(event);
     } catch (e) {
       // Gets the reason for failure.
       let msg = "";
@@ -157,61 +160,46 @@ export default function App() {
       setJotError(msg);
       setAnchorEl(event.currentTarget);
     }
+
+    return verified;
   };
 
   const decryptJWS = (event) => {
     const JWS = rs.jws.JWS;
-
-    console.log("decryptJWS");
+    let isValid = false;
 
     if (rs256) {
       if (key) {
-        const BEGIN_CERTIFICATE = "-----BEGIN CERTIFICATE-----";
-        const END_CERTIFICATE = "-----END CERTIFICATE-----";
-        let pemString = key;
-
-        // if (!pemString.startsWith(BEGIN_CERTIFICATE)) {
-        //   pemString = BEGIN_CERTIFICATE + "\n" + pemString;
-        // }
-
-        // if (!pemString.endsWith(END_CERTIFICATE)) {
-        //   pemString = pemString + "\n" + END_CERTIFICATE;
-        // }
-
-        const rsaKey = rs.KEYUTIL.getKey(pemString);
-        const isValid = JWS.verify(jot, rsaKey, ["RS256"]);
+        const rsaKey = rs.KEYUTIL.getKey(key);
+        isValid = JWS.verify(jot, rsaKey, ["RS256"]);
         setVerifiedSignature(isValid);
       } else {
         let msg = "Need a RSA certificate to verify the JWT signature.";
         setJotError(msg);
         setAnchorEl(event.currentTarget);
         setVerifiedSignature(false);
-        console.log("Need RSA certificate.");
+        console.error(msg);
       }
     } else if (hs256) {
       if (passphrase) {
-        // const isValid = JWS.verify(jot, key, ["HS256"]);
-        console.log("passphrase");
-        console.log(passphrase);
-
-        const isValid = JWS.verify(jot, { utf8: passphrase }, ["HS256"]);
+        isValid = JWS.verify(jot, { utf8: passphrase }, ["HS256"]);
         setVerifiedSignature(isValid);
-        console.log("isValid");
-        console.log(isValid);
       } else {
         let msg = "Need a passphrase to verify the JWT signature.";
         setJotError(msg);
         setAnchorEl(event.currentTarget);
         setVerifiedSignature(false);
-        console.log("Need passphrase.");
+        console.error(msg);
       }
     } else {
       let msg = "Didn't recognize the algorithm. Use RS256 or HS256.";
       setJotError(msg);
       setAnchorEl(event.currentTarget);
       setVerifiedSignature(false);
-      console.log("Didn't recognize the algorithm. Use RS256 or HS256");
+      console.error(msg);
     }
+
+    return isValid;
   };
 
   return (
@@ -315,7 +303,7 @@ export default function App() {
                   borderRadius={5}
                   borderColor="#576877"
                   marginTop="0rem"
-                  marginBottom="1rem"
+                  marginBottom="0rem"
                   padding="1rem"
                 >
                   {decodedJot ? (
@@ -345,6 +333,7 @@ export default function App() {
                   marginTop="0rem"
                   marginBottom="1rem"
                   padding="1rem"
+                  maxWidth="100%"
                 >
                   {decodedJot ? (
                     <JSONPretty
@@ -364,7 +353,11 @@ export default function App() {
                   )}
                 </Box>
               </Grid>
-              <Grid item xs={12} style={{ flex: "10 0 auto" }}>
+              <Grid
+                item
+                xs={12}
+                style={{ flex: "10 0 auto", paddingBottom: "1rem" }}
+              >
                 <Typography>Signature</Typography>
                 <TextField
                   variant="outlined"
@@ -401,33 +394,6 @@ export default function App() {
                       onChange={handleKeyChange}
                     />
                   </Grid>
-
-                  <Grid item xs={12} style={{ flex: "1 0 auto" }}>
-                    <Button
-                      type="button"
-                      onClick={handleValidateJWT}
-                      fullWidth
-                      variant="contained"
-                      color="primary"
-                      className={classes.submit}
-                    >
-                      Verify Signature
-                    </Button>
-                  </Grid>
-                  <Grid item xs={12} style={{ flex: "1 0 auto" }}>
-                    <Box minHeight="100px">
-                      {verifiedSignature ? (
-                        <Typography color="primary">
-                          Signature Verified{" "}
-                          <CheckIcon style={{ paddingTop: ".25rem" }} />
-                        </Typography>
-                      ) : (
-                        <Typography color="secondary">
-                          Signature not verified
-                        </Typography>
-                      )}
-                    </Box>
-                  </Grid>
                 </>
               ) : (
                 <></>
@@ -435,7 +401,11 @@ export default function App() {
 
               {decodedJot && hs256 ? (
                 <>
-                  <Grid item xs={12} style={{ flex: "10 0 auto" }}>
+                  <Grid
+                    item
+                    xs={12}
+                    style={{ flex: "10 0 auto", paddingBottom: "1rem" }}
+                  >
                     <Typography>Passphrase</Typography>
                     <TextField
                       variant="outlined"
@@ -453,39 +423,35 @@ export default function App() {
                       onChange={handlePassphraseChange}
                     />
                   </Grid>
-
-                  <Grid item xs={12} style={{ flex: "1 0 auto" }}>
-                    {/* <Button
-                      type="button"
-                      onClick={handleValidateJWT}
-                      fullWidth
-                      variant="contained"
-                      color="primary"
-                      className={classes.submit}
-                    >
-                      Verify Signature
-                    </Button> */}
-
-                    <CircularIntegration verifySignature={handleValidateJWT} />
-                  </Grid>
-                  <Grid item xs={12} style={{ flex: "1 0 auto" }}>
-                    <Box minHeight="100px">
-                      {verifiedSignature ? (
-                        <Typography color="primary">
-                          Signature Verified{" "}
-                          <CheckIcon style={{ paddingTop: ".25rem" }} />
-                        </Typography>
-                      ) : (
-                        <Typography color="secondary">
-                          Signature not verified
-                        </Typography>
-                      )}
-                    </Box>
-                  </Grid>
                 </>
               ) : (
                 <></>
               )}
+              <Grid
+                item
+                xs={12}
+                style={{ flex: "1 0 auto", paddingBottom: "1rem" }}
+              >
+                <CircularIntegration verifySignature={handleValidateJWT} />
+              </Grid>
+              <Grid
+                item
+                xs={12}
+                style={{ flex: "1 0 auto", paddingBottom: "1rem" }}
+              >
+                <Box>
+                  {verifiedSignature ? (
+                    <Typography color="primary">
+                      Signature Verified{" "}
+                      <CheckIcon style={{ paddingTop: ".25rem" }} />
+                    </Typography>
+                  ) : (
+                    <Typography color="secondary">
+                      Signature not verified
+                    </Typography>
+                  )}
+                </Box>
+              </Grid>
             </Grid>
           </form>
         </Grid>
