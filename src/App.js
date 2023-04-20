@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
-import CssBaseline from "@material-ui/core/CssBaseline";
 import TextField from "@material-ui/core/TextField";
 import Paper from "@material-ui/core/Paper";
 import Box from "@material-ui/core/Box";
@@ -15,6 +14,7 @@ import * as jwtDecoder from "jwt-js-decode";
 import JSONPretty from "react-json-pretty";
 import JSONPrettyMon from "./App.css";
 import * as rs from "jsrsasign";
+import CircularIntegration from "./LoadingButton";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -30,9 +30,11 @@ const useStyles = makeStyles((theme) => ({
     maxHeight: "20vw",
   },
   paper: {
-    margin: theme.spacing(0, 2),
     display: "flex",
     height: "100%",
+    maxWidth: "100%",
+    paddingLeft: ".5rem",
+    paddingRight: ".5rem",
     flexDirection: "column",
     alignItems: "stretch",
     justifyContent: "flex-start",
@@ -88,6 +90,7 @@ export default function App() {
   const [rs256, setRS256] = useState(false);
   const [hs256, setHS256] = useState(false);
   const [key, setKey] = useState("");
+  const [passphrase, setPassphrase] = useState("");
   const [verifiedSignature, setVerifiedSignature] = useState(false);
 
   const open = Boolean(anchorEl);
@@ -112,9 +115,15 @@ export default function App() {
     event.preventDefault();
     setJot(event.target.value);
   };
+
   const handleKeyChange = (event) => {
     event.preventDefault();
     setKey(event.target.value);
+  };
+
+  const handlePassphraseChange = (event) => {
+    event.preventDefault();
+    setPassphrase(event.target.value);
   };
 
   const handleClose = () => {
@@ -138,12 +147,15 @@ export default function App() {
     }
   };
 
-  const handleValidateJWT = (event) => {
+  const handleValidateJWT = async (event) => {
     event.preventDefault();
+    setVerifiedSignature(false);
+
+    let verified = false;
+
     try {
-      decryptJWS(event);
+      verified = decryptJWS(event);
     } catch (e) {
-      setVerifiedSignature(false);
       // Gets the reason for failure.
       let msg = "";
       if (e.message) {
@@ -155,46 +167,50 @@ export default function App() {
       setJotError(msg);
       setAnchorEl(event.currentTarget);
     }
+
+    return verified;
   };
 
   const decryptJWS = (event) => {
-    if (key) {
-      const JWS = rs.jws.JWS;
-      if (rs256) {
-        const BEGIN_CERTIFICATE = "-----BEGIN CERTIFICATE-----";
-        const END_CERTIFICATE = "-----END CERTIFICATE-----";
-        let pemString = key;
+    const JWS = rs.jws.JWS;
+    let isValid = false;
 
-        if (!pemString.startsWith(BEGIN_CERTIFICATE)) {
-          pemString = BEGIN_CERTIFICATE + "\n" + pemString;
-        }
-
-        if (!pemString.endsWith(END_CERTIFICATE)) {
-          pemString = pemString + "\n" + END_CERTIFICATE;
-        }
-
-        const rsaKey = rs.KEYUTIL.getKey(pemString);
-        const isValid = JWS.verify(jot, rsaKey, ["RS256"]);
+    if (rs256) {
+      if (key) {
+        const rsaKey = rs.KEYUTIL.getKey(key);
+        isValid = JWS.verify(jot, rsaKey, ["RS256"]);
         setVerifiedSignature(isValid);
+      } else {
+        let msg = "Need a RSA certificate to verify the JWT signature.";
+        setJotError(msg);
+        setAnchorEl(event.currentTarget);
+        setVerifiedSignature(false);
+        console.error(msg);
       }
-
-      if (hs256) {
-        const isValid = JWS.verify(jot, key, ["HS256"]);
+    } else if (hs256) {
+      if (passphrase) {
+        isValid = JWS.verify(jot, { utf8: passphrase }, ["HS256"]);
         setVerifiedSignature(isValid);
+      } else {
+        let msg = "Need a passphrase to verify the JWT signature.";
+        setJotError(msg);
+        setAnchorEl(event.currentTarget);
+        setVerifiedSignature(false);
+        console.error(msg);
       }
     } else {
-      let msg = "Need a key to try to verify the JWT.";
+      let msg = "Didn't recognize the algorithm. Use RS256 or HS256.";
       setJotError(msg);
       setAnchorEl(event.currentTarget);
       setVerifiedSignature(false);
-      console.log("Need key.");
+      console.error(msg);
     }
+
+    return isValid;
   };
 
   return (
     <Grid container component="main" className={classes.root}>
-      <CssBaseline />
-
       <Grid
         item
         container
@@ -203,6 +219,7 @@ export default function App() {
         elevation={6}
         square
         justify="flex-start"
+        style={{ maxWidth: "100%" }}
       >
         <Grid
           item
@@ -292,11 +309,9 @@ export default function App() {
                   border={1}
                   borderRadius={5}
                   borderColor="#576877"
-                  height="100%"
-                  minHeight="10vh"
                   marginTop="0rem"
-                  marginBottom="1rem"
-                  padding="0"
+                  marginBottom="0rem"
+                  padding="1rem"
                 >
                   {decodedJot ? (
                     <JSONPretty
@@ -322,10 +337,10 @@ export default function App() {
                   border={1}
                   borderRadius={5}
                   borderColor="#576877"
-                  height="100%"
-                  minHeight="20vh"
                   marginTop="0rem"
                   marginBottom="1rem"
+                  padding="1rem"
+                  maxWidth="100%"
                 >
                   {decodedJot ? (
                     <JSONPretty
@@ -345,23 +360,26 @@ export default function App() {
                   )}
                 </Box>
               </Grid>
-              <Grid item xs={12} style={{ flex: "10 0 auto" }}>
+              <Grid
+                item
+                xs={12}
+                style={{ flex: "10 0 auto", paddingBottom: "1rem" }}
+              >
                 <Typography>Signature</Typography>
-                <Box
-                  border={1}
-                  borderRadius={5}
-                  borderColor="#576877"
-                  height="100%"
-                  minHeight="10vh"
-                  marginTop="0rem"
-                  marginBottom="1rem"
-                >
-                  {decodedJot ? (
-                    <Typography>{decodedJot.signature}</Typography>
-                  ) : (
-                    <Typography></Typography>
-                  )}
-                </Box>
+                <TextField
+                  variant="outlined"
+                  margin="none"
+                  required
+                  fullWidth
+                  id="signature"
+                  label="Signature"
+                  name="Signature"
+                  value={decodedJot ? decodedJot.signature : ""}
+                  autoFocus
+                  rowsMax={1}
+                  multiline
+                  onChange={handleJWTChange}
+                />
               </Grid>
               {decodedJot && rs256 ? (
                 <>
@@ -383,37 +401,64 @@ export default function App() {
                       onChange={handleKeyChange}
                     />
                   </Grid>
+                </>
+              ) : (
+                <></>
+              )}
 
-                  <Grid item xs={12} style={{ flex: "1 0 auto" }}>
-                    <Button
-                      type="button"
-                      onClick={handleValidateJWT}
+              {decodedJot && hs256 ? (
+                <>
+                  <Grid
+                    item
+                    xs={12}
+                    style={{ flex: "10 0 auto", paddingBottom: "1rem" }}
+                  >
+                    <Typography>Passphrase</Typography>
+                    <TextField
+                      variant="outlined"
+                      margin="none"
+                      color={verifiedSignature ? "primary" : "secondary"}
+                      required
                       fullWidth
-                      variant="contained"
-                      color="primary"
-                      className={classes.submit}
-                    >
-                      Verify Signature
-                    </Button>
-                  </Grid>
-                  <Grid item xs={12} style={{ flex: "1 0 auto" }}>
-                    <Box minHeight="100px">
-                      {verifiedSignature ? (
-                        <Typography color="primary">
-                          Signature Verified{" "}
-                          <CheckIcon style={{ paddingTop: ".25rem" }} />
-                        </Typography>
-                      ) : (
-                        <Typography color="secondary">
-                          Signature not verified
-                        </Typography>
-                      )}
-                    </Box>
+                      id="passphrase"
+                      label="Passphrase"
+                      name="passphrase"
+                      value={passphrase}
+                      autoFocus
+                      rowsMax={4}
+                      multiline
+                      onChange={handlePassphraseChange}
+                    />
                   </Grid>
                 </>
               ) : (
                 <></>
               )}
+              <Grid
+                item
+                xs={12}
+                style={{ flex: "1 0 auto", paddingBottom: "1rem" }}
+              >
+                <CircularIntegration verifySignature={handleValidateJWT} />
+              </Grid>
+              <Grid
+                item
+                xs={12}
+                style={{ flex: "1 0 auto", paddingBottom: "1rem" }}
+              >
+                <Box>
+                  {verifiedSignature ? (
+                    <Typography color="primary">
+                      Signature Verified{" "}
+                      <CheckIcon style={{ paddingTop: ".25rem" }} />
+                    </Typography>
+                  ) : (
+                    <Typography color="secondary">
+                      Signature not verified
+                    </Typography>
+                  )}
+                </Box>
+              </Grid>
             </Grid>
           </form>
         </Grid>

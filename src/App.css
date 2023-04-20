@@ -3,6 +3,10 @@
   color: #2c387e;
   background: #ffffff;
   overflow: auto;
+  font-size: 1rem;
+  padding: 0;
+  margin: 0;
+  max-width: 100%;
 }
 .__json-pretty__ .__json-key__ {
   color: #550422;
@@ -12,6 +16,7 @@
 }
 .__json-pretty__ .__json-string__ {
   color: #fe2550;
+  word-wrap: break-word;
 }
 .__json-pretty__ .__json-boolean__ {
   color: #ac81fe;
