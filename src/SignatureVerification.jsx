@@ -224,20 +224,25 @@ const SignatureVerification = ({
         </Grid>
         {decodedHeader && rs256 ? (
           <Grid
+            id="rs256PubKeyMainContainer"
             item
             container
             xs={12}>
             <Grid
+              id="rs256PubKeyFormContainer"
               item
               container
               xs={12}>
               <FormControl
+                id="rsaFormControl"
                 component={Grid}
                 item
                 container
                 direction="row"
+                justifyContent="center"
                 xs={12}>
                 <Grid
+                  id="rsaPubKeyLabel"
                   item
                   container
                   xs={5}
