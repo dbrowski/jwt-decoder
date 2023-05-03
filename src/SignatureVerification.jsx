@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
+
 import { ThemeProvider } from "@mui/material/styles";
+import CheckIcon from "@mui/icons-material/Check";
+
 import theme from "./theme";
+
 import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import CheckIcon from "@mui/icons-material/Check";
 import PendingIcon from "@mui/icons-material/Pending";
 import Popover from "@mui/material/Popover";
 import Radio from "@mui/material/Radio";
@@ -12,7 +15,13 @@ import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
 import FormLabel from "@mui/material/FormLabel";
+import ToggleButton from "@mui/material/ToggleButton";
+import Box from "@mui/material/Box";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import CancelIcon from "@mui/icons-material/Cancel";
+
 import VerifySigBtn from "./LoadingButton";
+
 import * as jose from "jose";
 import * as rs from "jsrsasign";
 
@@ -32,6 +41,7 @@ const SignatureVerification = ({
   const [verifiedSignature, setVerifiedSignature] = useState(false);
   const [n, setN] = useState("");
   const [e, setE] = useState("");
+  const [checkExpired, setCheckExpired] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [jotError, setJotError] = useState(null);
 
@@ -229,39 +239,42 @@ const SignatureVerification = ({
             container
             xs={12}>
             <Grid
-              id="rs256PubKeyFormContainer"
+              id="rs256PubKeyRadBtnFormContainer"
               item
               container
-              xs={12}>
+              xs={6}
+              px="2%">
               <FormControl
-                id="rsaFormControl"
+                id="rs256RadBtnFormControl"
                 component={Grid}
                 item
                 container
-                direction="row"
-                justifyContent="center"
-                xs={12}>
+                xs={12}
+                justifyContent="center">
                 <Grid
-                  id="rsaPubKeyLabel"
+                  id="rs256PubKeyLabel"
                   item
                   container
                   xs={5}
                   sm={3}
                   flexGrow={1}
                   alignContent="center">
-                  <FormLabel id="rsa-pubKey-radio-btns-group-label">
+                  <FormLabel id="rs256-pubKey-radio-btns-group-label">
                     <Typography color="primary">RSA Public Key</Typography>
                   </FormLabel>
                 </Grid>
+
                 <Grid
+                  id="rs256PubKeyRadBtnsGroupContainer"
                   item
                   xs={7}
                   sm={9}
                   flexGrow={1}>
                   <RadioGroup
+                    id="rs256-radio-buttons-group"
+                    name="rs256-radio-buttons-group"
+                    aria-labelledby="rs256-pubKey-radio-btns-group-label"
                     row
-                    aria-labelledby="rsa-pubKey-radio-buttons-group-label"
-                    name="radio-buttons-group"
                     value={rsaPubKeyFormat}
                     onChange={handleRSAPubKeyFormatChange}
                     sx={{
@@ -270,10 +283,12 @@ const SignatureVerification = ({
                       alignContent: "center",
                     }}>
                     <FormControlLabel
+                      id="jwkFormControlLabel"
                       value="jwk"
                       control={
                         <Radio
-                          name="rsa-pubKey-format-radio-button-jwk"
+                          id="jwkRadBtn"
+                          name="rs256-pubKey-format-radio-button-jwk"
                           size="small"
                         />
                       }
@@ -283,7 +298,8 @@ const SignatureVerification = ({
                       value="pem"
                       control={
                         <Radio
-                          name="rsa-pubKey-format-radio-button-pem"
+                          id="pemRadBtn"
+                          name="rs256-pubKey-format-radio-button-pem"
                           size="small"
                         />
                       }
@@ -293,6 +309,63 @@ const SignatureVerification = ({
                 </Grid>
               </FormControl>
             </Grid>
+
+            <Grid
+              id="rs256CheckExpiredCheckboxContainer"
+              item
+              container
+              xs={6}
+              px="2%">
+              <Grid
+                item
+                container
+                xs={12}>
+                <Grid
+                  item
+                  container
+                  xs={5}
+                  sm={3}
+                  flexGrow={1}
+                  alignContent="center">
+                  <Typography>Check if expired?</Typography>
+                </Grid>
+                <Grid
+                  item
+                  container
+                  xs={7}
+                  sm={9}
+                  justifyContent="flex-end"
+                  alignContent="center">
+                  <ToggleButton
+                    aria-label="will check if token has expired"
+                    value="check"
+                    selected={checkExpired}
+                    size="small"
+                    onChange={() => {
+                      setCheckExpired(!checkExpired);
+                    }}
+                    sx={{
+                      border: 1,
+                      borderColor: "#FFFFFF",
+                      color: "#FFFFFF",
+                      borderRadius: 50,
+                    }}>
+                    {checkExpired ? (
+                      <CheckCircleOutlineIcon
+                        fontSize="large"
+                        color="primary"
+                      />
+                    ) : (
+                      <CancelIcon
+                        fontSize="large"
+                        color="error"
+                      />
+                    )}
+                  </ToggleButton>
+                </Grid>
+              </Grid>
+            </Grid>
+
             {rsaPubKeyFormat === "jwk" ? (
               <Grid
                 item
