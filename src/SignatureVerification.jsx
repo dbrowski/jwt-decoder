@@ -150,13 +150,14 @@ const SignatureVerification = ({
             },
             "RS256"
           );
+          const clockTolerance = checkExpired ? 0 : Number.POSITIVE_INFINITY;
           const { _payload, _protectedHeader } = await jose.jwtVerify(
             jot,
             rsaPublicKey,
             {
               issuer: decodedPayload.iss,
               audience: decodedPayload.aud,
-              clockTolerance: Number.POSITIVE_INFINITY,
+              clockTolerance: clockTolerance,
             }
           );
 
@@ -165,6 +166,12 @@ const SignatureVerification = ({
           setVerifiedSignature(true);
         } catch (e) {
           let msg = e.message;
+          if (e.message === '"exp" claim timestamp check failed') {
+            const expirationDateTime = new Date(decodedPayload.exp * 1000);
+            msg =
+              "Token is invalid because it has expired. It expired at " +
+              expirationDateTime;
+          }
           setJotError(msg);
           setAnchorEl(event.target);
           setVerifiedSignature(false);
@@ -237,28 +244,31 @@ const SignatureVerification = ({
             id="rs256PubKeyMainContainer"
             item
             container
-            xs={12}>
+            xs={12}
+            pt={2}>
             <Grid
               id="rs256PubKeyRadBtnFormContainer"
               item
               container
-              xs={6}
-              px="2%">
+              xs={6}>
               <FormControl
                 id="rs256RadBtnFormControl"
                 component={Grid}
                 item
                 container
                 xs={12}
-                justifyContent="center">
+                sx={{
+                  justifyContent: "space-around",
+                  alignItems: "center",
+                  flexWrap: "nowrap",
+                  flexDirection: "row",
+                }}>
                 <Grid
                   id="rs256PubKeyLabel"
                   item
                   container
-                  xs={5}
-                  sm={3}
-                  flexGrow={1}
-                  alignContent="center">
+                  alignItems="center"
+                  width="auto">
                   <FormLabel id="rs256-pubKey-radio-btns-group-label">
                     <Typography color="primary">RSA Public Key</Typography>
                   </FormLabel>
@@ -267,40 +277,56 @@ const SignatureVerification = ({
                 <Grid
                   id="rs256PubKeyRadBtnsGroupContainer"
                   item
-                  xs={7}
-                  sm={9}
-                  flexGrow={1}>
+                  container
+                  alignItems="center"
+                  width="auto"
+                  p={0}>
                   <RadioGroup
                     id="rs256-radio-buttons-group"
                     name="rs256-radio-buttons-group"
                     aria-labelledby="rs256-pubKey-radio-btns-group-label"
                     row
                     value={rsaPubKeyFormat}
-                    onChange={handleRSAPubKeyFormatChange}
-                    sx={{
-                      fontSize: ".5rem",
-                      justifyContent: "flex-end",
-                      alignContent: "center",
-                    }}>
+                    onChange={handleRSAPubKeyFormatChange}>
                     <FormControlLabel
                       id="jwkFormControlLabel"
                       value="jwk"
+                      sx={{
+                        "margin": 0,
+                        "padding": 0,
+                        "& .MuiFormControlLabel-label": {
+                          fontSize: ".95rem",
+                        },
+                      }}
                       control={
                         <Radio
                           id="jwkRadBtn"
                           name="rs256-pubKey-format-radio-button-jwk"
                           size="small"
+                          sx={{
+                            padding: 0,
+                            paddingRight: 1,
+                          }}
                         />
                       }
                       label="JWK"
                     />
                     <FormControlLabel
                       value="pem"
+                      sx={{
+                        "margin": 0,
+                        "padding": 0,
+                        "paddingLeft": 3,
+                        "& .MuiFormControlLabel-label": {
+                          fontSize: ".95rem",
+                        },
+                      }}
                       control={
                         <Radio
                           id="pemRadBtn"
                           name="rs256-pubKey-format-radio-button-pem"
                           size="small"
+                          sx={{ padding: 0, paddingRight: 1 }}
                         />
                       }
                       label="PEM"
@@ -311,53 +337,67 @@ const SignatureVerification = ({
             </Grid>
 
             <Grid
-              id="rs256CheckExpiredCheckboxContainer"
+              id="rs256CheckExpiredContainer"
               item
               container
-              xs={6}
-              px="2%">
+              xs={6}>
               <Grid
                 item
                 container
-                xs={12}>
+                xs={12}
+                justifyContent="space-around"
+                flexWrap="nowrap"
+                alignItems="center">
                 <Grid
+                  id="checkExpiredLabelContainer"
                   item
                   container
-                  xs={5}
-                  sm={3}
-                  flexGrow={1}
-                  alignContent="center">
+                  flexBasis="auto"
+                  alignItems="center">
                   <Typography>Check if expired?</Typography>
                 </Grid>
                 <Grid
+                  id="checkExpiredToggleContainer"
                   item
                   container
-                  xs={7}
-                  sm={9}
-                  justifyContent="flex-end"
-                  alignContent="center">
+                  flexBasis="auto"
+                  justifyContent="space-around"
+                  alignItems="center">
                   <ToggleButton
                     aria-label="will check if token has expired"
                     value="check"
                     selected={checkExpired}
                     size="small"
+                    // color="primary"
                     onChange={() => {
                       setCheckExpired(!checkExpired);
                     }}
                     sx={{
-                      border: 1,
-                      borderColor: "#FFFFFF",
-                      color: "#FFFFFF",
-                      borderRadius: 50,
+                      "border": 1,
+                      "borderColor": "#FFFFFF",
+                      "color": "#FFFFFF",
+                      "borderRadius": 2,
+                      "backgroundColor": "rgba(80, 93, 104, 0.2)",
+                      "padding": 1,
+                      "&:hover": {
+                        backgroundColor: "rgba(80, 93, 104, 0.5)",
+                      },
+                      "&.Mui-selected": {
+                        backgroundColor: "rgba(179, 40, 45, 0.2)",
+                      },
+                      "&.Mui-selected:hover": {
+                        padding: 1,
+                        backgroundColor: "rgba(179, 40, 45, 0.5)",
+                      },
                     }}>
                     {checkExpired ? (
                       <CheckCircleOutlineIcon
-                        fontSize="large"
+                        fontSize="small"
                         color="primary"
                       />
                     ) : (
                       <CancelIcon
-                        fontSize="large"
+                        fontSize="small"
                         color="error"
                       />
                     )}
