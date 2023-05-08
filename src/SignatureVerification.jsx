@@ -322,73 +322,76 @@ const SignatureVerification = ({
                 </Grid>
               </FormControl>
             </Grid>
-
-            <Grid id="rs256CheckExpiredContainer" item container xs={6}>
-              <Grid
-                item
-                container
-                xs={12}
-                justifyContent="space-around"
-                flexWrap="nowrap"
-                alignItems="center"
-              >
+            {rsaPubKeyFormat !== "pem" ? (
+              <Grid id="rs256CheckExpiredContainer" item container xs={6}>
                 <Grid
-                  id="checkExpiredLabelContainer"
                   item
                   container
-                  flexBasis="auto"
-                  alignItems="center"
-                >
-                  <Typography>Check if expired?</Typography>
-                </Grid>
-                <Grid
-                  id="checkExpiredToggleContainer"
-                  item
-                  container
-                  flexBasis="auto"
+                  xs={12}
                   justifyContent="space-around"
+                  flexWrap="nowrap"
                   alignItems="center"
                 >
-                  <ToggleButton
-                    aria-label="will check if token has expired"
-                    value="check"
-                    selected={checkExpired}
-                    size="small"
-                    // color="primary"
-                    onChange={() => {
-                      setCheckExpired(!checkExpired);
-                    }}
-                    sx={{
-                      border: 1,
-                      borderColor: "#FFFFFF",
-                      color: "#FFFFFF",
-                      borderRadius: 2,
-                      backgroundColor: "rgba(80, 93, 104, 0.2)",
-                      padding: 1,
-                      "&:hover": {
-                        backgroundColor: "rgba(80, 93, 104, 0.5)",
-                      },
-                      "&.Mui-selected": {
-                        backgroundColor: "rgba(179, 40, 45, 0.2)",
-                      },
-                      "&.Mui-selected:hover": {
-                        padding: 1,
-                        backgroundColor: "rgba(179, 40, 45, 0.5)",
-                      },
-                    }}
+                  <Grid
+                    id="checkExpiredLabelContainer"
+                    item
+                    container
+                    flexBasis="auto"
+                    alignItems="center"
                   >
-                    {checkExpired ? (
-                      <CheckCircleOutlineIcon
-                        fontSize="small"
-                        color="primary"
-                      />
-                    ) : (
-                      <CancelIcon fontSize="small" color="error" />
-                    )}
-                  </ToggleButton>
+                    <Typography>Check if expired?</Typography>
+                  </Grid>
+                  <Grid
+                    id="checkExpiredToggleContainer"
+                    item
+                    container
+                    flexBasis="auto"
+                    justifyContent="space-around"
+                    alignItems="center"
+                  >
+                    <ToggleButton
+                      aria-label="will check if token has expired"
+                      value="check"
+                      selected={checkExpired}
+                      size="small"
+                      // color="primary"
+                      onChange={() => {
+                        setCheckExpired(!checkExpired);
+                      }}
+                      sx={{
+                        border: 1,
+                        borderColor: "#FFFFFF",
+                        color: "#FFFFFF",
+                        borderRadius: 2,
+                        backgroundColor: "rgba(80, 93, 104, 0.2)",
+                        padding: 1,
+                        "&:hover": {
+                          backgroundColor: "rgba(80, 93, 104, 0.5)",
+                        },
+                        "&.Mui-selected": {
+                          backgroundColor: "rgba(179, 40, 45, 0.2)",
+                        },
+                        "&.Mui-selected:hover": {
+                          padding: 1,
+                          backgroundColor: "rgba(179, 40, 45, 0.5)",
+                        },
+                      }}
+                    >
+                      {checkExpired ? (
+                        <CheckCircleOutlineIcon
+                          fontSize="small"
+                          color="primary"
+                        />
+                      ) : (
+                        <CancelIcon fontSize="small" color="error" />
+                      )}
+                    </ToggleButton>
+                  </Grid>
                 </Grid>
               </Grid>
-            </Grid>
+            ) : (
+              <></>
+            )}
 
             {rsaPubKeyFormat === "jwk" ? (
               <Grid item container xs={12} spacing={3}>
