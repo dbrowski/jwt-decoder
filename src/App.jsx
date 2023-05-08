@@ -129,6 +129,7 @@ const App = () => {
                   maxRows={4}
                   multiline
                   onChange={handleJWTChange}
+                  inputProps={{spellCheck: "false"}}
                   sx={{
                     "& .MuiInputBase-root": {
                       padding: "3% 0 2% 2%",

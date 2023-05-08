@@ -4,9 +4,6 @@ const theme = createTheme({
   root: {
     maxHeight: "100%",
   },
-  props: {
-    MuiInput: { inputProps: { spellCheck: 'false' } }
-  },
   paper: {
     display: "flex",
     height: "100%",
