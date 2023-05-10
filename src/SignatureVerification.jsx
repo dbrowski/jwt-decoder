@@ -25,6 +25,9 @@ import VerifySigBtn from "./LoadingButton";
 import * as jose from "jose";
 import * as rs from "jsrsasign";
 
+import verifyRS256SignatureJWK from "./utils/verifyRS256SIgnatureJWK";
+import verifyRS256SignaturePEM from "./utils/verifyRS256SIgnaturePEM";
+
 const SignatureVerification = ({
   jot,
   signature,
@@ -130,8 +133,7 @@ const SignatureVerification = ({
     if (rs256) {
       if (rsaPubKeyFormat === "pem") {
         try {
-          const rsaKey = rs.KEYUTIL.getKey(pem);
-          isValid = JWS.verify(jot, rsaKey, ["RS256"]);
+          isValid = verifyRS256SignaturePEM(jot, { pem });
           setVerifiedSignature(isValid);
         } catch (e) {
           let msg = e.message;
@@ -142,28 +144,9 @@ const SignatureVerification = ({
         }
       } else if (rsaPubKeyFormat === "jwk") {
         try {
-          const rsaPublicKey = await jose.importJWK(
-            {
-              kty: "RSA",
-              e: e,
-              n: n,
-            },
-            "RS256"
-          );
-          const clockTolerance = checkExpired ? 0 : Number.POSITIVE_INFINITY;
-          const { _payload, _protectedHeader } = await jose.jwtVerify(
-            jot,
-            rsaPublicKey,
-            {
-              issuer: decodedPayload.iss,
-              audience: decodedPayload.aud,
-              clockTolerance: clockTolerance,
-            }
-          );
+          isValid = await verifyRS256SignatureJWK(jot, { jwk: { n, e } });
 
-          // if jwtVerify doesn't throw an exception, then the signature has
-          // been successfully verified
-          setVerifiedSignature(true);
+          setVerifiedSignature(isValid);
         } catch (e) {
           let msg = e.message;
           if (e.message === '"exp" claim timestamp check failed') {
