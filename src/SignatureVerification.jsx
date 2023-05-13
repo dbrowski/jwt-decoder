@@ -44,7 +44,7 @@ const SignatureVerification = ({
   const [verifiedSignature, setVerifiedSignature] = useState(false);
   const [n, setN] = useState("");
   const [e, setE] = useState("");
-  const [checkExpired, setCheckExpired] = useState(false);
+  const [ignoreExpiration, setIgnoreExpiration] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [jotError, setJotError] = useState(null);
 
@@ -81,6 +81,13 @@ const SignatureVerification = ({
     }
 
     return verified;
+  };
+
+  const displaySigVerificationErrorPopup = (msg, event) => {
+    setJotError(msg);
+    setAnchorEl(event.target);
+    setVerifiedSignature(false);
+    console.error(msg);
   };
 
   const resetValues = () => {
@@ -121,12 +128,9 @@ const SignatureVerification = ({
     let isValid = false;
 
     if (!signature) {
-      let msg =
+      const msg =
         "Missing the JWT signature. Either this JWT does not contain a signature or it could not be decoded.";
-      setJotError(msg);
-      setAnchorEl(event.currentTarget);
-      setVerifiedSignature(false);
-      console.error(msg);
+      displaySigVerificationErrorPopup(msg, event);
       return;
     }
 
@@ -134,59 +138,48 @@ const SignatureVerification = ({
       if (rsaPubKeyFormat === "pem") {
         try {
           isValid = verifyRS256SignaturePEM(jot, { pem });
-          setVerifiedSignature(isValid);
         } catch (e) {
-          let msg = e.message;
-          setJotError(msg);
-          setAnchorEl(event.target);
-          setVerifiedSignature(false);
-          console.error(msg);
+          const msg = e.message;
+          displaySigVerificationErrorPopup(msg, event);
         }
       } else if (rsaPubKeyFormat === "jwk") {
         try {
-          isValid = await verifyRS256SignatureJWK(jot, { jwk: { n, e } });
-
-          setVerifiedSignature(isValid);
+          isValid = await verifyRS256SignatureJWK(
+            jot,
+            { jwk: { n, e } },
+            ignoreExpiration
+          );
         } catch (e) {
           let msg = e.message;
+
+          // Check if the error was due to expired token to display a more
+          // informative error message.
           if (e.message === '"exp" claim timestamp check failed') {
             const expirationDateTime = new Date(decodedPayload.exp * 1000);
             msg =
-              "Token is invalid because it has expired. It expired at " +
+              "Token is invalid because it has expired. It expired " +
               expirationDateTime;
           }
-          setJotError(msg);
-          setAnchorEl(event.target);
-          setVerifiedSignature(false);
-          console.error(msg);
+          displaySigVerificationErrorPopup(msg, event);
         }
       } else {
-        let msg =
+        const msg =
           "Need a RSA public key jwk or certificate to verify the JWT signature.";
-        setJotError(msg);
-        setAnchorEl(event.target);
-        setVerifiedSignature(false);
-        console.error(msg);
+        displaySigVerificationErrorPopup(msg, event);
       }
     } else if (hs256) {
       if (passphrase) {
         isValid = JWS.verify(jot, { utf8: passphrase }, ["HS256"]);
-        setVerifiedSignature(isValid);
       } else {
-        let msg = "Need a passphrase to verify the JWT signature.";
-        setJotError(msg);
-        setAnchorEl(event.target);
-        setVerifiedSignature(false);
-        console.error(msg);
+        const msg = "Need a passphrase to verify the JWT signature.";
+        displaySigVerificationErrorPopup(msg, event);
       }
     } else {
-      let msg = "Didn't recognize the algorithm. Use RS256 or HS256.";
-      setJotError(msg);
-      setAnchorEl(event.target);
-      setVerifiedSignature(false);
-      console.error(msg);
+      const msg = "Didn't recognize the algorithm. Use RS256 or HS256.";
+      displaySigVerificationErrorPopup(msg, event);
     }
 
+    setVerifiedSignature(isValid);
     return isValid;
   };
 
@@ -320,7 +313,7 @@ const SignatureVerification = ({
             </Grid>
             {rsaPubKeyFormat !== "pem" ? (
               <Grid
-                id="rs256CheckExpiredContainer"
+                id="rs256IgnoreExpirationContainer"
                 item
                 container
                 xs={6}>
@@ -332,15 +325,15 @@ const SignatureVerification = ({
                   flexWrap="nowrap"
                   alignItems="center">
                   <Grid
-                    id="checkExpiredLabelContainer"
+                    id="ignoreExpirationLabelContainer"
                     item
                     container
                     flexBasis="auto"
                     alignItems="center">
-                    <Typography>Check if expired?</Typography>
+                    <Typography>Ignore expiration date?</Typography>
                   </Grid>
                   <Grid
-                    id="checkExpiredToggleContainer"
+                    id="ignoreExpirationToggleContainer"
                     item
                     container
                     flexBasis="auto"
@@ -349,11 +342,11 @@ const SignatureVerification = ({
                     <ToggleButton
                       aria-label="will check if token has expired"
                       value="check"
-                      selected={checkExpired}
+                      selected={ignoreExpiration}
                       size="small"
                       // color="primary"
                       onChange={() => {
-                        setCheckExpired(!checkExpired);
+                        setIgnoreExpiration(!ignoreExpiration);
                       }}
                       sx={{
                         "border": 1,
@@ -373,7 +366,7 @@ const SignatureVerification = ({
                           backgroundColor: "rgba(179, 40, 45, 0.5)",
                         },
                       }}>
-                      {checkExpired ? (
+                      {ignoreExpiration ? (
                         <CheckCircleOutlineIcon
                           fontSize="small"
                           color="primary"

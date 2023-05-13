@@ -1,14 +1,16 @@
 import * as jose from "jose";
 import * as rs from "jsrsasign";
 
-import decode from "./decodeJWT";
+import decodeJWT from "./decodeJWT";
 
 export const verifyRS256SignatureJWK = async (
   jwt,
-  publicKey
+  publicKey,
+  ignoreExpiration
 ) => {
   const { headers, claims, sig } = decodeJWT(jwt);
   const jwk = publicKey.jwk;
+  const { e, n } = jwk;
   const rsaPublicKey = await jose.importJWK(
     {
       kty: "RSA",
@@ -17,9 +19,9 @@ export const verifyRS256SignatureJWK = async (
     },
     "RS256"
   );
-  const clockTolerance = checkExpired ? 0 : Number.POSITIVE_INFINITY;
+  const clockTolerance = ignoreExpiration ? Number.POSITIVE_INFINITY : 0;
   const { _payload, _protectedHeader } = await jose.jwtVerify(
-    jot,
+    jwt,
     rsaPublicKey,
     {
       issuer: claims.iss,

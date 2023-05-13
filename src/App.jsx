@@ -28,11 +28,6 @@ const App = () => {
   const id = open ? "popover" : undefined;
 
   const decode = () => {
-    // const headers = jose.decodeProtectedHeader(jot);
-    // const claims = jose.decodeJwt(jot);
-    // const jotComponents = jot.split(".");
-    // const sig = jotComponents.length >= 2 ? jotComponents[2] : "";
-
     const { headers, claims, sig } = decodeJWT(jot);
 
     setDecodedHeader(headers);
