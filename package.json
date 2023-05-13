@@ -23,9 +23,9 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "cypress:open": "cypress open"
+    "cypress:open": "cypress open",
+    "test": "mocha './tests/**/*.test.js'"
   },
   "browserslist": {
     "production": [
