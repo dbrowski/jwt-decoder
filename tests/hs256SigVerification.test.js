@@ -139,9 +139,10 @@ describe("HS256 Signature Verification", () => {
     const sigInput = b64Header + "." + b64Payload;
     const numBytesInSecret = 32;
     const rndBytes = crypto.randomBytes(numBytesInSecret);
+    const secretKey = crypto.createSecretKey(rndBytes);
     const secretHex = rndBytes.toString("hex");
     const secretUTF8 = rndBytes.toString("utf8");
-    const secretKey = crypto.createSecretKey(rndBytes);
+    const secretB64 = rndBytes.toString("base64");
 
     // hmac using keyobject secret
     const hmacWithKeyObj = crypto.createHmac("sha256", secretKey);
@@ -163,6 +164,14 @@ describe("HS256 Signature Verification", () => {
     const sigUTF8 = hmacWithUTF8Key.digest("base64url");
     const jwtUTF8 = sigInput + "." + sigUTF8;
 
+    // hmac using base64 secret
+    const hmacWithB64Key = crypto.createHmac("sha256", secretB64, {
+      encoding: "base64",
+    });
+    hmacWithB64Key.update(sigInput);
+    const sigB64 = hmacWithB64Key.digest("base64url");
+    const jwtB64 = sigInput + "." + sigB64;
+
     it("should successfully verify the HS256 signed JWT using secret from key object hex encoding", () => {
       expect(
         JWS.verify(
@@ -173,16 +182,25 @@ describe("HS256 Signature Verification", () => {
         "secret: " + secretKey.export({ format: "buffer" }).toString("hex")
       ).to.be.true;
     });
+
     it("should successfully verify the HS256 signed JWT using secret in hex encoding", () => {
       expect(
         JWS.verify(jwtHex, { hex: secretHex }, ["HS256"]),
         "secret: " + secretHex
       ).to.be.true;
     });
+
     it("should successfully verify the HS256 signed JWT using secret in utf8 encoding", () => {
       expect(
         JWS.verify(jwtUTF8, { utf8: secretUTF8 }, ["HS256"]),
         "secret: " + secretUTF8
+      ).to.be.true;
+    });
+
+    it("should successfully verify the HS256 signed JWT using secret in base64 encoding", () => {
+      expect(
+        JWS.verify(jwtB64, { b64: secretB64 }, ["HS256"]),
+        "secret: " + secretB64
       ).to.be.true;
     });
   });
