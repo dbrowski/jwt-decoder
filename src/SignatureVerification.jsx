@@ -170,9 +170,10 @@ const SignatureVerification = ({
     } else if (hs256) {
       if (passphrase) {
         isValid = JWS.verify(jot, passphrase, ["HS256"]);
-        
+
         if (!isValid) {
-          const msg = "Couldn't verify the signature with the given passphrase.";
+          const msg =
+            "Couldn't verify the signature with the given passphrase.";
           displaySigVerificationErrorPopup(msg, event);
         }
       } else {
