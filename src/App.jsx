@@ -12,6 +12,7 @@ import JWTDecoderHeading from "./JWTDecoderHeading";
 import JSONOutput from "./JSONOutput";
 import DecodeButton from "./DecodeButton";
 import SignatureVerification from "./SignatureVerification";
+import decodeJWT from "./utils/decodeJWT";
 
 const App = () => {
   // State variables and setters.
@@ -27,10 +28,7 @@ const App = () => {
   const id = open ? "popover" : undefined;
 
   const decode = () => {
-    const headers = jose.decodeProtectedHeader(jot);
-    const claims = jose.decodeJwt(jot);
-    const jotComponents = jot.split(".");
-    const sig = jotComponents.length >= 2 ? jotComponents[2] : "";
+    const { headers, claims, sig } = decodeJWT(jot);
 
     setDecodedHeader(headers);
     setDecodedPayload(claims);
@@ -129,7 +127,7 @@ const App = () => {
                   maxRows={4}
                   multiline
                   onChange={handleJWTChange}
-                  inputProps={{spellCheck: "false"}}
+                  inputProps={{ spellCheck: "false" }}
                   sx={{
                     "& .MuiInputBase-root": {
                       padding: "3% 0 2% 2%",

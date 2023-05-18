@@ -25,6 +25,9 @@ import VerifySigBtn from "./LoadingButton";
 import * as jose from "jose";
 import * as rs from "jsrsasign";
 
+import verifyRS256SignatureJWK from "./utils/verifyRS256SIgnatureJWK";
+import verifyRS256SignaturePEM from "./utils/verifyRS256SIgnaturePEM";
+
 const SignatureVerification = ({
   jot,
   signature,
@@ -41,7 +44,7 @@ const SignatureVerification = ({
   const [verifiedSignature, setVerifiedSignature] = useState(false);
   const [n, setN] = useState("");
   const [e, setE] = useState("");
-  const [checkExpired, setCheckExpired] = useState(false);
+  const [ignoreExpiration, setIgnoreExpiration] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [jotError, setJotError] = useState(null);
 
@@ -78,6 +81,13 @@ const SignatureVerification = ({
     }
 
     return verified;
+  };
+
+  const displaySigVerificationErrorPopup = (msg, event) => {
+    setJotError(msg);
+    setAnchorEl(event.target);
+    setVerifiedSignature(false);
+    console.error(msg);
   };
 
   const resetValues = () => {
@@ -118,92 +128,58 @@ const SignatureVerification = ({
     let isValid = false;
 
     if (!signature) {
-      let msg =
+      const msg =
         "Missing the JWT signature. Either this JWT does not contain a signature or it could not be decoded.";
-      setJotError(msg);
-      setAnchorEl(event.currentTarget);
-      setVerifiedSignature(false);
-      console.error(msg);
+      displaySigVerificationErrorPopup(msg, event);
       return;
     }
 
     if (rs256) {
       if (rsaPubKeyFormat === "pem") {
         try {
-          const rsaKey = rs.KEYUTIL.getKey(pem);
-          isValid = JWS.verify(jot, rsaKey, ["RS256"]);
-          setVerifiedSignature(isValid);
+          isValid = verifyRS256SignaturePEM(jot, { pem });
         } catch (e) {
-          let msg = e.message;
-          setJotError(msg);
-          setAnchorEl(event.target);
-          setVerifiedSignature(false);
-          console.error(msg);
+          const msg = e.message;
+          displaySigVerificationErrorPopup(msg, event);
         }
       } else if (rsaPubKeyFormat === "jwk") {
         try {
-          const rsaPublicKey = await jose.importJWK(
-            {
-              kty: "RSA",
-              e: e,
-              n: n,
-            },
-            "RS256"
-          );
-          const clockTolerance = checkExpired ? 0 : Number.POSITIVE_INFINITY;
-          const { _payload, _protectedHeader } = await jose.jwtVerify(
+          isValid = await verifyRS256SignatureJWK(
             jot,
-            rsaPublicKey,
-            {
-              issuer: decodedPayload.iss,
-              audience: decodedPayload.aud,
-              clockTolerance: clockTolerance,
-            }
+            { jwk: { n, e } },
+            ignoreExpiration
           );
-
-          // if jwtVerify doesn't throw an exception, then the signature has
-          // been successfully verified
-          setVerifiedSignature(true);
         } catch (e) {
           let msg = e.message;
+
+          // Check if the error was due to expired token to display a more
+          // informative error message.
           if (e.message === '"exp" claim timestamp check failed') {
             const expirationDateTime = new Date(decodedPayload.exp * 1000);
             msg =
-              "Token is invalid because it has expired. It expired at " +
+              "Token is invalid because it has expired. It expired " +
               expirationDateTime;
           }
-          setJotError(msg);
-          setAnchorEl(event.target);
-          setVerifiedSignature(false);
-          console.error(msg);
+          displaySigVerificationErrorPopup(msg, event);
         }
       } else {
-        let msg =
+        const msg =
           "Need a RSA public key jwk or certificate to verify the JWT signature.";
-        setJotError(msg);
-        setAnchorEl(event.target);
-        setVerifiedSignature(false);
-        console.error(msg);
+        displaySigVerificationErrorPopup(msg, event);
       }
     } else if (hs256) {
       if (passphrase) {
         isValid = JWS.verify(jot, { utf8: passphrase }, ["HS256"]);
-        setVerifiedSignature(isValid);
       } else {
-        let msg = "Need a passphrase to verify the JWT signature.";
-        setJotError(msg);
-        setAnchorEl(event.target);
-        setVerifiedSignature(false);
-        console.error(msg);
+        const msg = "Need a passphrase to verify the JWT signature.";
+        displaySigVerificationErrorPopup(msg, event);
       }
     } else {
-      let msg = "Didn't recognize the algorithm. Use RS256 or HS256.";
-      setJotError(msg);
-      setAnchorEl(event.target);
-      setVerifiedSignature(false);
-      console.error(msg);
+      const msg = "Didn't recognize the algorithm. Use RS256 or HS256.";
+      displaySigVerificationErrorPopup(msg, event);
     }
 
+    setVerifiedSignature(isValid);
     return isValid;
   };
 
@@ -221,19 +197,36 @@ const SignatureVerification = ({
         transformOrigin={{
           vertical: "top",
           horizontal: "center",
-        }}
-      >
+        }}>
         <Typography sx={theme.errorMessage}>{jotError}</Typography>
       </Popover>
-      <Grid id="sigComponentGridContainer" item container xs={12}>
-        <Grid item xs={12} pt="2%">
-          <Typography variant="subtitle2" fontSize="1rem">
+      <Grid
+        id="sigComponentGridContainer"
+        item
+        container
+        xs={12}>
+        <Grid
+          item
+          xs={12}
+          pt="2%">
+          <Typography
+            variant="subtitle2"
+            fontSize="1rem">
             Signature Verification
           </Typography>
         </Grid>
         {decodedHeader && rs256 ? (
-          <Grid id="rs256PubKeyMainContainer" item container xs={12} pt={2}>
-            <Grid id="rs256PubKeyRadBtnFormContainer" item container xs={6}>
+          <Grid
+            id="rs256PubKeyMainContainer"
+            item
+            container
+            xs={12}
+            pt={2}>
+            <Grid
+              id="rs256PubKeyRadBtnFormContainer"
+              item
+              container
+              xs={6}>
               <FormControl
                 id="rs256RadBtnFormControl"
                 component={Grid}
@@ -245,15 +238,13 @@ const SignatureVerification = ({
                   alignItems: "center",
                   flexWrap: "nowrap",
                   flexDirection: "row",
-                }}
-              >
+                }}>
                 <Grid
                   id="rs256PubKeyLabel"
                   item
                   container
                   alignItems="center"
-                  width="auto"
-                >
+                  width="auto">
                   <FormLabel id="rs256-pubKey-radio-btns-group-label">
                     <Typography color="primary">RSA Public Key</Typography>
                   </FormLabel>
@@ -265,22 +256,20 @@ const SignatureVerification = ({
                   container
                   alignItems="center"
                   width="auto"
-                  p={0}
-                >
+                  p={0}>
                   <RadioGroup
                     id="rs256-radio-buttons-group"
                     name="rs256-radio-buttons-group"
                     aria-labelledby="rs256-pubKey-radio-btns-group-label"
                     row
                     value={rsaPubKeyFormat}
-                    onChange={handleRSAPubKeyFormatChange}
-                  >
+                    onChange={handleRSAPubKeyFormatChange}>
                     <FormControlLabel
                       id="jwkFormControlLabel"
                       value="jwk"
                       sx={{
-                        margin: 0,
-                        padding: 0,
+                        "margin": 0,
+                        "padding": 0,
                         "& .MuiFormControlLabel-label": {
                           fontSize: ".95rem",
                         },
@@ -301,9 +290,9 @@ const SignatureVerification = ({
                     <FormControlLabel
                       value="pem"
                       sx={{
-                        margin: 0,
-                        padding: 0,
-                        paddingLeft: 3,
+                        "margin": 0,
+                        "padding": 0,
+                        "paddingLeft": 3,
                         "& .MuiFormControlLabel-label": {
                           fontSize: ".95rem",
                         },
@@ -323,48 +312,49 @@ const SignatureVerification = ({
               </FormControl>
             </Grid>
             {rsaPubKeyFormat !== "pem" ? (
-              <Grid id="rs256CheckExpiredContainer" item container xs={6}>
+              <Grid
+                id="rs256IgnoreExpirationContainer"
+                item
+                container
+                xs={6}>
                 <Grid
                   item
                   container
                   xs={12}
                   justifyContent="space-around"
                   flexWrap="nowrap"
-                  alignItems="center"
-                >
+                  alignItems="center">
                   <Grid
-                    id="checkExpiredLabelContainer"
+                    id="ignoreExpirationLabelContainer"
                     item
                     container
                     flexBasis="auto"
-                    alignItems="center"
-                  >
-                    <Typography>Check if expired?</Typography>
+                    alignItems="center">
+                    <Typography>Ignore expiration date?</Typography>
                   </Grid>
                   <Grid
-                    id="checkExpiredToggleContainer"
+                    id="ignoreExpirationToggleContainer"
                     item
                     container
                     flexBasis="auto"
                     justifyContent="space-around"
-                    alignItems="center"
-                  >
+                    alignItems="center">
                     <ToggleButton
                       aria-label="will check if token has expired"
                       value="check"
-                      selected={checkExpired}
+                      selected={ignoreExpiration}
                       size="small"
                       // color="primary"
                       onChange={() => {
-                        setCheckExpired(!checkExpired);
+                        setIgnoreExpiration(!ignoreExpiration);
                       }}
                       sx={{
-                        border: 1,
-                        borderColor: "#FFFFFF",
-                        color: "#FFFFFF",
-                        borderRadius: 2,
-                        backgroundColor: "rgba(80, 93, 104, 0.2)",
-                        padding: 1,
+                        "border": 1,
+                        "borderColor": "#FFFFFF",
+                        "color": "#FFFFFF",
+                        "borderRadius": 2,
+                        "backgroundColor": "rgba(80, 93, 104, 0.2)",
+                        "padding": 1,
                         "&:hover": {
                           backgroundColor: "rgba(80, 93, 104, 0.5)",
                         },
@@ -375,15 +365,17 @@ const SignatureVerification = ({
                           padding: 1,
                           backgroundColor: "rgba(179, 40, 45, 0.5)",
                         },
-                      }}
-                    >
-                      {checkExpired ? (
+                      }}>
+                      {ignoreExpiration ? (
                         <CheckCircleOutlineIcon
                           fontSize="small"
                           color="primary"
                         />
                       ) : (
-                        <CancelIcon fontSize="small" color="error" />
+                        <CancelIcon
+                          fontSize="small"
+                          color="error"
+                        />
                       )}
                     </ToggleButton>
                   </Grid>
@@ -394,11 +386,20 @@ const SignatureVerification = ({
             )}
 
             {rsaPubKeyFormat === "jwk" ? (
-              <Grid item container xs={12} spacing={3}>
-                <Grid item xs={12}>
+              <Grid
+                item
+                container
+                xs={12}
+                spacing={3}>
+                <Grid
+                  item
+                  xs={12}>
                   <Typography>JWK</Typography>
                 </Grid>
-                <Grid item xs={3} sm={2}>
+                <Grid
+                  item
+                  xs={3}
+                  sm={2}>
                   <TextField
                     variant="outlined"
                     margin="none"
@@ -425,7 +426,10 @@ const SignatureVerification = ({
                     }}
                   />
                 </Grid>
-                <Grid item xs={3} sm={2}>
+                <Grid
+                  item
+                  xs={3}
+                  sm={2}>
                   <TextField
                     variant="outlined"
                     margin="none"
@@ -452,7 +456,10 @@ const SignatureVerification = ({
                     }}
                   />
                 </Grid>
-                <Grid item xs={6} sm={8}>
+                <Grid
+                  item
+                  xs={6}
+                  sm={8}>
                   <TextField
                     variant="outlined"
                     margin="none"
@@ -480,7 +487,9 @@ const SignatureVerification = ({
                     }}
                   />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid
+                  item
+                  xs={12}>
                   <TextField
                     variant="outlined"
                     margin="none"
@@ -513,11 +522,19 @@ const SignatureVerification = ({
               <></>
             )}
             {rsaPubKeyFormat === "pem" ? (
-              <Grid item container xs={12}>
-                <Grid item xs={12} pb="1%">
+              <Grid
+                item
+                container
+                xs={12}>
+                <Grid
+                  item
+                  xs={12}
+                  pb="1%">
                   <Typography>PEM</Typography>
                 </Grid>
-                <Grid item xs={12}>
+                <Grid
+                  item
+                  xs={12}>
                   <TextField
                     variant="outlined"
                     margin="none"
@@ -543,7 +560,10 @@ const SignatureVerification = ({
           <></>
         )}
         {decodedHeader && hs256 ? (
-          <Grid item xs={12} sx={{ flex: "10 0 auto", paddingBottom: "2%" }}>
+          <Grid
+            item
+            xs={12}
+            sx={{ flex: "10 0 auto", paddingBottom: "2%" }}>
             <Typography>Passphrase</Typography>
             <TextField
               variant="outlined"
@@ -564,33 +584,51 @@ const SignatureVerification = ({
           <></>
         )}
         {decodedHeader && decodedPayload ? (
-          <Grid item container>
-            <Grid item container pt="2%" pb="1%" xs={12}>
+          <Grid
+            item
+            container>
+            <Grid
+              item
+              container
+              pt="2%"
+              pb="1%"
+              xs={12}>
               <VerifySigBtn verifySignature={handleValidateJWT} />
             </Grid>
             <Grid
               item
               container
               xs={12}
-              sx={{ flex: "1 0 auto", paddingBottom: "1%" }}
-            >
+              sx={{ flex: "1 0 auto", paddingBottom: "1%" }}>
               {verifiedSignature ? (
-                <Grid item container xs={12}>
+                <Grid
+                  item
+                  container
+                  xs={12}>
                   <Grid item>
                     <Typography color="primary">Signature Verified</Typography>
                   </Grid>
-                  <Grid item sx={{ paddingLeft: "1%" }}>
+                  <Grid
+                    item
+                    sx={{ paddingLeft: "1%" }}>
                     <CheckIcon color="primary" />
                   </Grid>
                 </Grid>
               ) : (
-                <Grid item container xs={12}>
+                <Grid
+                  item
+                  container
+                  xs={12}>
                   <Grid item>
-                    <Typography color="info" fontWeight="fontWeightBold">
+                    <Typography
+                      color="info"
+                      fontWeight="fontWeightBold">
                       Signature not verified{" "}
                     </Typography>
                   </Grid>
-                  <Grid item sx={{ paddingLeft: "1%" }}>
+                  <Grid
+                    item
+                    sx={{ paddingLeft: "1%" }}>
                     <PendingIcon color="info" />
                   </Grid>
                 </Grid>
@@ -598,8 +636,14 @@ const SignatureVerification = ({
             </Grid>
           </Grid>
         ) : (
-          <Grid item xs={12} pt="2%" pb="10%">
-            <Typography color="error" fontSize=".65rem">
+          <Grid
+            item
+            xs={12}
+            pt="2%"
+            pb="10%">
+            <Typography
+              color="error"
+              fontSize=".65rem">
               First, decode a JWT, then you can verify its signature.
             </Typography>
           </Grid>
