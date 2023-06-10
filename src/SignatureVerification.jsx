@@ -185,8 +185,6 @@ const SignatureVerification = ({
       displaySigVerificationErrorPopup(msg, event);
     }
 
-          console.log("isValid");
-          console.log(isValid);
     setVerifiedSignature(isValid);
     return isValid;
   };
