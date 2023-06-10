@@ -137,7 +137,7 @@ const SignatureVerification = ({
     if (rs256) {
       if (rsaPubKeyFormat === "pem") {
         try {
-          isValid = verifyRS256SignaturePEM(jot, { pem });
+          isValid = await verifyRS256SignaturePEM(jot, { pem });
         } catch (e) {
           const msg = e.message;
           displaySigVerificationErrorPopup(msg, event);
@@ -185,6 +185,8 @@ const SignatureVerification = ({
       displaySigVerificationErrorPopup(msg, event);
     }
 
+          console.log("isValid");
+          console.log(isValid);
     setVerifiedSignature(isValid);
     return isValid;
   };
